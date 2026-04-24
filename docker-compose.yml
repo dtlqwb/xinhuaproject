@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: sales-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-root123}
+      MYSQL_DATABASE: sales_customer_db
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./backend/src/main/resources/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+
+  backend:
+    build: ./backend
+    container_name: sales-backend
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      DB_URL: jdbc:mysql://mysql:3306/sales_customer_db?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+      DB_USERNAME: root
+      DB_PASSWORD: ${DB_PASSWORD:-root123}
+      JWT_SECRET: ${JWT_SECRET:-salesCustomerSystemSecretKey2024Production}
+      FILE_UPLOAD_PATH: /data/uploads/
+    volumes:
+      - upload-data:/data/uploads
+      - log-data:/data/logs
+    depends_on:
+      - mysql
+
+  sales-frontend:
+    build:
+      context: ./sales-frontend
+      dockerfile: Dockerfile
+    container_name: sales-frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+  admin-frontend:
+    build:
+      context: ./admin-frontend
+      dockerfile: Dockerfile
+    container_name: admin-frontend
+    restart: always
+    ports:
+      - "81:80"
+    depends_on:
+      - backend
+
+volumes:
+  mysql-data:
+  upload-data:
+  log-data:
