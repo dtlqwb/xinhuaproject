@@ -37,41 +37,68 @@ jobs:
         ssh ${SERVER_USER}@${SERVER_HOST} << 'EOF'
           set -e
           
-          # 检查项目是否存在
-          if [ ! -d "${DEPLOY_DIR}" ]; then
-            echo "[1/7] 首次部署 - 克隆项目..."
+          echo "[1/7] 准备部署目录..."
+          
+          # 检查项目目录是否存在
+          if [ -d "${DEPLOY_DIR}" ]; then
+            echo "  目录已存在，进入目录..."
+            cd ${DEPLOY_DIR}
+            
+            # 检查是否是 git 仓库
+            if [ -d ".git" ]; then
+              echo "  是 Git 仓库，准备更新..."
+            else
+              echo "  目录存在但不是 Git 仓库，备份并重新克隆..."
+              cd /opt
+              mv xinhuaproject xinhuaproject_backup_$(date +%Y%m%d_%H%M%S)
+              git clone https://github.com/dtlqwb/xinhuaproject.git
+              cd xinhuaproject
+            fi
+          else
+            echo "  首次部署，克隆项目..."
             cd /opt
             git clone https://github.com/dtlqwb/xinhuaproject.git
-            echo "✓ 项目克隆成功"
+            cd xinhuaproject
           fi
           
-          echo "[2/7] 进入项目目录..."
-          cd ${DEPLOY_DIR}
+          echo "[2/7] 拉取最新代码..."
+          # 强制重置本地更改，确保与远程一致
+          git fetch origin master
+          git reset --hard origin/master
+          git clean -fd
           
-          echo "[3/7] 拉取最新代码..."
-          git pull origin master
-          
-          echo "[4/7] 检查配置文件..."
+          echo "[3/7] 检查配置文件..."
           if [ ! -f .env ]; then
-            cp .env.example .env
-            echo "⚠️  请手动配置.env文件"
+            if [ -f .env.example ]; then
+              cp .env.example .env
+              echo "  ⚠️  已从 .env.example 创建 .env，请检查配置"
+            else
+              echo "  ⚠️  未找到 .env.example，请手动创建 .env 文件"
+            fi
           fi
+          
+          echo "[4/7] 停止旧服务..."
+          sudo docker compose down || true
           
           echo "[5/7] 构建Docker镜像..."
-          sudo docker compose build
+          sudo docker compose build --no-cache
           
-          echo "[6/7] 重启服务..."
-          sudo docker compose down
+          echo "[6/7] 启动服务..."
           sudo docker compose up -d
           
-          echo "[7/7] 等待服务启动..."
-          sleep 10
+          echo "[7/7] 等待服务启动并检查状态..."
+          sleep 15
           
           echo ""
-          echo "✅ 部署完成！"
+          echo "========================================"
+          echo "  ✅ 部署完成！"
+          echo "========================================"
           echo ""
           echo "服务状态："
           sudo docker compose ps
+          echo ""
+          echo "查看日志："
+          echo "  sudo docker compose logs -f backend"
         EOF
         
         echo ""
