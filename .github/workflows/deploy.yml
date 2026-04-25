@@ -37,33 +37,41 @@ jobs:
         ssh ${SERVER_USER}@${SERVER_HOST} << 'EOF'
           set -e
           
-          echo "[1/6] 进入项目目录..."
+          # 检查项目是否存在
+          if [ ! -d "${DEPLOY_DIR}" ]; then
+            echo "[1/7] 首次部署 - 克隆项目..."
+            cd /opt
+            git clone https://github.com/dtlqwb/xinhuaproject.git
+            echo "✓ 项目克隆成功"
+          fi
+          
+          echo "[2/7] 进入项目目录..."
           cd ${DEPLOY_DIR}
           
-          echo "[2/6] 拉取最新代码..."
+          echo "[3/7] 拉取最新代码..."
           git pull origin master
           
-          echo "[3/6] 检查配置文件..."
+          echo "[4/7] 检查配置文件..."
           if [ ! -f .env ]; then
             cp .env.example .env
             echo "⚠️  请手动配置.env文件"
           fi
           
-          echo "[4/6] 构建Docker镜像..."
-          docker compose build
+          echo "[5/7] 构建Docker镜像..."
+          sudo docker compose build
           
-          echo "[5/6] 重启服务..."
-          docker compose down
-          docker compose up -d
+          echo "[6/7] 重启服务..."
+          sudo docker compose down
+          sudo docker compose up -d
           
-          echo "[6/6] 等待服务启动..."
+          echo "[7/7] 等待服务启动..."
           sleep 10
           
           echo ""
           echo "✅ 部署完成！"
           echo ""
           echo "服务状态："
-          docker compose ps
+          sudo docker compose ps
         EOF
         
         echo ""
