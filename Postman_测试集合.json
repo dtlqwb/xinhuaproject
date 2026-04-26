@@ -1,0 +1,359 @@
+{
+  "info": {
+    "name": "智销助手 API 测试集合",
+    "description": "销售客户资料收集系统完整API测试",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://82.156.165.194:8080",
+      "type": "string"
+    },
+    {
+      "key": "adminToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "salesToken",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. 认证接口",
+      "item": [
+        {
+          "name": "销售人员登录",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"13800138000\",\n  \"password\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/sales/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sales", "login"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.code === 200) {",
+                  "    pm.environment.set('salesToken', jsonData.data.token);",
+                  "    pm.test('销售人员登录成功', function() {",
+                  "        pm.expect(jsonData.code).to.eql(200);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "销售人员登录 - 错误密码",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"13800138000\",\n  \"password\": \"wrong\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/sales/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sales", "login"]
+            }
+          }
+        },
+        {
+          "name": "管理员登录",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "login"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.code === 200) {",
+                  "    pm.environment.set('adminToken', jsonData.data.token);",
+                  "    pm.test('管理员登录成功', function() {",
+                  "        pm.expect(jsonData.code).to.eql(200);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "管理员登录 - 错误用户名",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"wrong\",\n  \"password\": \"admin123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. 客户管理",
+      "item": [
+        {
+          "name": "添加客户",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "content",
+                  "value": "张三,某某公司,经理,13800138000",
+                  "type": "text"
+                },
+                {
+                  "key": "salesId",
+                  "value": "1",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/customer/add",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "customer", "add"]
+            }
+          }
+        },
+        {
+          "name": "查询客户列表",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/customer/list?salesId=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "customer", "list"],
+              "query": [
+                {
+                  "key": "salesId",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "查询客户详情",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/customer/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "customer", "1"]
+            }
+          }
+        },
+        {
+          "name": "更新客户信息",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": 1,\n  \"name\": \"张三(已更新)\",\n  \"company\": \"某某公司\",\n  \"position\": \"经理\",\n  \"phone\": \"13800138000\",\n  \"content\": \"更新后的备注\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/customer/update",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "customer", "update"]
+            }
+          }
+        },
+        {
+          "name": "删除客户",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/customer/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "customer", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. 销售管理",
+      "item": [
+        {
+          "name": "获取今日客户数量",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/sales/today-count?salesId=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sales", "today-count"],
+              "query": [
+                {
+                  "key": "salesId",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. AI日报",
+      "item": [
+        {
+          "name": "生成AI日报",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"salesId\": 1,\n  \"date\": \"2026-04-26\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/daily-report/generate",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "daily-report", "generate"]
+            }
+          }
+        },
+        {
+          "name": "查询日报列表",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/daily-report/list?salesId=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "daily-report", "list"],
+              "query": [
+                {
+                  "key": "salesId",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. 营销方案",
+      "item": [
+        {
+          "name": "生成营销方案",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/marketing-plan/generate",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "marketing-plan", "generate"]
+            }
+          }
+        },
+        {
+          "name": "查询营销方案列表",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/marketing-plan/list",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "marketing-plan", "list"]
+            }
+          }
+        },
+        {
+          "name": "查询指定客户的营销方案",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/marketing-plan/customer/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "marketing-plan", "customer", "1"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

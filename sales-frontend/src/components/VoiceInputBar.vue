@@ -92,11 +92,34 @@ onMounted(() => {
     
     recognition.onerror = (event: any) => {
       console.error('语音识别错误:', event.error)
-      showToast('语音识别失败，请重试')
       isRecording.value = false
+      
+      // 针对不同错误类型给出提示
+      switch (event.error) {
+        case 'not-allowed':
+          showToast('请允许使用麦克风')
+          break
+        case 'network':
+          showToast('网络错误，请检查网络连接')
+          break
+        case 'no-speech':
+          showToast('未检测到语音，请重试')
+          break
+        default:
+          showToast('语音识别失败，请重试')
+      }
+    }
+    
+    recognition.onend = () => {
+      // 录音结束事件，确保状态重置
+      if (isRecording.value) {
+        isRecording.value = false
+      }
     }
   } else {
-    showToast('您的浏览器不支持语音识别')
+    // 浏览器不支持时，提示切换到键盘模式
+    showToast('浏览器不支持语音识别，请使用键盘输入')
+    isKeyboardMode.value = true
   }
 })
 

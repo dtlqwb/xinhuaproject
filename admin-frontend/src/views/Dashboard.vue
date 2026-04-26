@@ -1,6 +1,10 @@
 <template>
   <div class="dashboard">
-    <van-nav-bar title="管理后台" />
+    <van-nav-bar title="管理后台">
+      <template #right>
+        <van-icon name="cross" size="20" @click="handleLogout" />
+      </template>
+    </van-nav-bar>
     
     <div class="stats-grid">
       <div class="stat-card" @click="$router.push('/customers')">
@@ -32,8 +36,11 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { showToast } from 'vant'
 import request from '@/utils/request'
 
+const router = useRouter()
 const active = ref(0)
 const stats = ref({
   totalCustomers: 0,
@@ -53,6 +60,13 @@ const loadStats = async () => {
   } catch (error) {
     console.error('加载统计失败', error)
   }
+}
+
+// 退出登录
+const handleLogout = () => {
+  localStorage.removeItem('admin_token')
+  showToast('已退出登录')
+  router.push('/login')
 }
 </script>
 
