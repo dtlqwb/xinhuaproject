@@ -40,13 +40,13 @@ public class SalesPersonServiceImpl extends ServiceImpl<SalesPersonMapper, Sales
         String token = jwtUtil.generateToken(salesPerson.getId(), salesPerson.getName());
         
         // 构建响应
-        LoginResponse response = new LoginResponse();
-        response.setId(salesPerson.getId());
-        response.setName(salesPerson.getName());
-        response.setPhone(salesPerson.getPhone());
-        response.setDepartment(salesPerson.getDepartment());
-        response.setToken(token);
-        
-        return response;
+        return LoginResponse.builder()
+                .id(salesPerson.getId())
+                .username(salesPerson.getPhone())
+                .name(salesPerson.getName())
+                .phone(salesPerson.getPhone())
+                .department(salesPerson.getDepartment())
+                .token(token)
+                .build();
     }
 }
