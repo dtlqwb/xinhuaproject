@@ -20,4 +20,11 @@ public interface MarketingPlanService extends IService<MarketingPlan> {
      * 标记为已执行
      */
     boolean markAsExecuted(Long id);
+    
+    /**
+     * 批量生成营销方案
+     * @param customerIds 客户ID列表
+     * @return 生成的营销方案列表
+     */
+    List<MarketingPlan> batchGeneratePlans(List<Long> customerIds);
 }

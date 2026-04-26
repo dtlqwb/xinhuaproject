@@ -52,6 +52,28 @@ public class MarketingPlanController {
     }
     
     /**
+     * 批量生成营销方案
+     */
+    @PostMapping("/batch-generate")
+    public Result<List<MarketingPlan>> batchGeneratePlans(@RequestBody List<Long> customerIds) {
+        try {
+            if (customerIds == null || customerIds.isEmpty()) {
+                return Result.error("客户ID列表不能为空");
+            }
+            
+            List<MarketingPlan> plans = marketingPlanService.batchGeneratePlans(customerIds);
+            
+            if (plans.isEmpty()) {
+                return Result.error("所有方案生成失败");
+            }
+            
+            return Result.success(plans);
+        } catch (Exception e) {
+            return Result.error(e.getMessage());
+        }
+    }
+    
+    /**
      * 查询营销方案列表
      */
     @GetMapping("/list")
