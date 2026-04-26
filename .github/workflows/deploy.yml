@@ -13,81 +13,35 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
     
-    - name: Setup SSH
-      uses: shimataro/ssh-key-action@v2
-      with:
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        known_hosts: ${{ secrets.SERVER_HOST }}
-        if_key_exists: replace
-    
-    - name: Add server to known hosts
-      run: |
-        mkdir -p ~/.ssh
-        ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
-    
     - name: Deploy to server
-      env:
-        SERVER_USER: ${{ secrets.SERVER_USER }}
-        SERVER_HOST: ${{ secrets.SERVER_HOST }}
-        DEPLOY_DIR: /opt/xinhuaproject
-      run: |
-        echo "🚀 开始部署..."
-        
-        # 连接到服务器并执行部署
-        ssh ${SERVER_USER}@${SERVER_HOST} << 'EOF'
-          set -e
+      uses: appleboy/ssh-action@v0.1.5
+      with:
+        host: ${{ secrets.SERVER_HOST }}
+        username: ${{ secrets.SERVER_USERNAME }}
+        key: ${{ secrets.SERVER_SSH_KEY }}
+        script: |
+          echo "🚀 开始部署..."
           
-          echo "[1/7] 准备部署目录..."
-          
-          # 检查项目目录是否存在
-          if [ -d "${DEPLOY_DIR}" ]; then
-            echo "  目录已存在，进入目录..."
-            cd ${DEPLOY_DIR}
-            
-            # 检查是否是 git 仓库
-            if [ -d ".git" ]; then
-              echo "  是 Git 仓库，准备更新..."
-            else
-              echo "  目录存在但不是 Git 仓库，备份并重新克隆..."
-              cd /opt
-              mv xinhuaproject xinhuaproject_backup_$(date +%Y%m%d_%H%M%S)
-              git clone https://github.com/dtlqwb/xinhuaproject.git
-              cd xinhuaproject
-            fi
+          # 检查目录是否存在且是git仓库
+          if [ -d "xinhuaproject/.git" ]; then
+            echo "[1/4] 项目已存在，更新代码..."
+            cd xinhuaproject
+            git pull origin master
           else
-            echo "  首次部署，克隆项目..."
-            cd /opt
+            echo "[1/4] 首次部署或目录不存在，克隆项目..."
+            rm -rf xinhuaproject
             git clone https://github.com/dtlqwb/xinhuaproject.git
             cd xinhuaproject
           fi
           
-          echo "[2/7] 拉取最新代码..."
-          # 强制重置本地更改，确保与远程一致
-          git fetch origin master
-          git reset --hard origin/master
-          git clean -fd
+          echo "[2/4] 停止旧服务..."
+          docker-compose down || true
           
-          echo "[3/7] 检查配置文件..."
-          if [ ! -f .env ]; then
-            if [ -f .env.example ]; then
-              cp .env.example .env
-              echo "  ⚠️  已从 .env.example 创建 .env，请检查配置"
-            else
-              echo "  ⚠️  未找到 .env.example，请手动创建 .env 文件"
-            fi
-          fi
+          echo "[3/4] 构建并启动服务..."
+          docker-compose up -d --build
           
-          echo "[4/7] 停止旧服务..."
-          sudo docker compose down || true
-          
-          echo "[5/7] 构建Docker镜像..."
-          sudo docker compose build --no-cache
-          
-          echo "[6/7] 启动服务..."
-          sudo docker compose up -d
-          
-          echo "[7/7] 等待服务启动并检查状态..."
-          sleep 15
+          echo "[4/4] 等待服务启动..."
+          sleep 10
           
           echo ""
           echo "========================================"
@@ -95,17 +49,11 @@ jobs:
           echo "========================================"
           echo ""
           echo "服务状态："
-          sudo docker compose ps
+          docker-compose ps
           echo ""
           echo "查看日志："
-          echo "  sudo docker compose logs -f backend"
-        EOF
-        
-        echo ""
-        echo "========================================"
-        echo "  🎉 部署成功！"
-        echo "========================================"
-        echo ""
-        echo "访问地址："
-        echo "  销售端: http://${{ secrets.SERVER_HOST }}:80"
-        echo "  管理端: http://${{ secrets.SERVER_HOST }}:81"
+          echo "  docker-compose logs -f backend"
+          echo ""
+          echo "访问地址："
+          echo "  销售端: http://${{ secrets.SERVER_HOST }}:80"
+          echo "  管理端: http://${{ secrets.SERVER_HOST }}:81"
