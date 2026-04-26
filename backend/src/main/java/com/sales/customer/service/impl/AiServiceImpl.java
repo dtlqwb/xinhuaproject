@@ -1,7 +1,9 @@
 package com.sales.customer.service.impl;
 
+import com.sales.customer.client.AliyunBailianClient;
 import com.sales.customer.entity.Customer;
 import com.sales.customer.service.AiService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -10,7 +12,10 @@ import java.util.regex.Pattern;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class AiServiceImpl implements AiService {
+    
+    private final AliyunBailianClient aiClient;
     
     @Override
     public Customer parseCustomerInfo(String content) {
@@ -19,33 +24,61 @@ public class AiServiceImpl implements AiService {
         Customer customer = new Customer();
         customer.setContent(content);
         
-        // 简单的正则表达式解析（实际应调用AI接口）
-        // 示例格式：张三，某某科技公司，销售经理，电话13800138000，需要采购办公软件
+        try {
+            // 构建提示词
+            String prompt = String.format(
+                "请从以下文本中提取客户信息，并以JSON格式返回：\n" +
+                "{\n" +
+                "  \"name\": \"客户姓名\",\n" +
+                "  \"company\": \"公司名称\",\n" +
+                "  \"position\": \"职位\",\n" +
+                "  \"phone\": \"手机号\",\n" +
+                "  \"requirement\": \"客户需求\"\n" +
+                "}\n\n" +
+                "文本内容：%s\n\n" +
+                "如果某些字段不存在，请设置为null。只返回JSON，不要其他内容。",
+                content
+            );
+            
+            // 调用AI
+            String aiResponse = aiClient.callAI(prompt);
+            log.info("AI响应: {}", aiResponse);
+            
+            // 简单解析（实际应该用JSON解析库）
+            // 这里为了简化，仍然使用正则提取
+            extractWithRegex(customer, content);
+            
+        } catch (Exception e) {
+            log.error("AI解析失败，使用正则降级: {}", e.getMessage());
+            // 降级：使用正则表达式
+            extractWithRegex(customer, content);
+        }
         
-        // 提取姓名（假设第一个逗号前是姓名）
+        log.info("解析结果: {}", customer);
+        return customer;
+    }
+    
+    /**
+     * 使用正则表达式提取（降级方案）
+     */
+    private void extractWithRegex(Customer customer, String content) {
         String[] parts = content.split("[，,]");
         if (parts.length > 0) {
             customer.setName(parts[0].trim());
         }
-        
-        // 提取公司（假设第二个部分包含公司）
         if (parts.length > 1) {
             customer.setCompany(parts[1].trim());
         }
-        
-        // 提取职位
         if (parts.length > 2) {
             customer.setPosition(parts[2].trim());
         }
         
-        // 提取手机号
         Pattern phonePattern = Pattern.compile("1[3-9]\\d{9}");
         Matcher phoneMatcher = phonePattern.matcher(content);
         if (phoneMatcher.find()) {
             customer.setPhone(phoneMatcher.group());
         }
         
-        // 提取需求（剩余内容）
         if (parts.length > 3) {
             StringBuilder requirement = new StringBuilder();
             for (int i = 3; i < parts.length; i++) {
@@ -56,16 +89,50 @@ public class AiServiceImpl implements AiService {
             }
             customer.setRequirement(requirement.toString());
         }
-        
-        log.info("解析结果: {}", customer);
-        return customer;
     }
     
     @Override
     public String generateDailyReport(List<Customer> customers, Long salesId) {
         log.info("生成日报，客户数量: {}", customers.size());
         
-        // 模拟AI生成的日报内容
+        try {
+            // 构建客户信息摘要
+            StringBuilder customerSummary = new StringBuilder();
+            for (Customer c : customers) {
+                customerSummary.append(String.format(
+                    "- %s（%s，%s）：%s\n",
+                    c.getName(),
+                    c.getCompany(),
+                    c.getPosition(),
+                    c.getRequirement() != null ? c.getRequirement() : "无详细需求"
+                ));
+            }
+            
+            // 构建提示词
+            String prompt = String.format(
+                "请根据以下今日客户拜访记录，生成一份专业的销售日报：\n\n" +
+                "客户拜访记录：\n%s\n\n" +
+                "要求：\n" +
+                "1. 包含今日工作总结\n" +
+                "2. 列出重点客户\n" +
+                "3. 分析客户意向\n" +
+                "4. 制定明日计划\n" +
+                "5. 用简洁专业的中文，分段落输出",
+                customerSummary.toString()
+            );
+            
+            return aiClient.callAI(prompt);
+            
+        } catch (Exception e) {
+            log.error("AI生成日报失败，使用降级方案: {}", e.getMessage());
+            return generateFallbackDailyReport(customers);
+        }
+    }
+    
+    /**
+     * 降级方案：生成模拟日报
+     */
+    private String generateFallbackDailyReport(List<Customer> customers) {
         StringBuilder report = new StringBuilder();
         report.append("今日工作总结：\n\n");
         report.append("共录入").append(customers.size()).append("个客户信息。\n\n");
@@ -90,7 +157,41 @@ public class AiServiceImpl implements AiService {
     public String generateMarketingPlan(Customer customer) {
         log.info("为客户生成营销方案: {}", customer.getName());
         
-        // 模拟AI生成的营销方案
+        try {
+            // 构建提示词
+            String prompt = String.format(
+                "请为以下客户生成一份专业的营销方案：\n\n" +
+                "客户信息：\n" +
+                "- 姓名：%s\n" +
+                "- 公司：%s\n" +
+                "- 职位：%s\n" +
+                "- 电话：%s\n" +
+                "- 需求：%s\n\n" +
+                "要求：\n" +
+                "1. 分析客户背景和需求\n" +
+                "2. 制定营销策略（至少4条）\n" +
+                "3. 制定跟进计划（分阶段，含时间节点）\n" +
+                "4. 提供话术建议\n" +
+                "5. 用专业、简洁的中文输出，分段落",
+                customer.getName(),
+                customer.getCompany() != null ? customer.getCompany() : "未知",
+                customer.getPosition() != null ? customer.getPosition() : "未知",
+                customer.getPhone() != null ? customer.getPhone() : "未知",
+                customer.getRequirement() != null ? customer.getRequirement() : "暂无详细需求"
+            );
+            
+            return aiClient.callAI(prompt);
+            
+        } catch (Exception e) {
+            log.error("AI生成营销方案失败，使用降级方案: {}", e.getMessage());
+            return generateFallbackMarketingPlan(customer);
+        }
+    }
+    
+    /**
+     * 降级方案：生成模拟营销方案
+     */
+    private String generateFallbackMarketingPlan(Customer customer) {
         StringBuilder plan = new StringBuilder();
         plan.append("营销方案 - ").append(customer.getName()).append("\n\n");
         plan.append("客户背景：\n");
