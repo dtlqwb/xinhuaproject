@@ -23,8 +23,10 @@ public class SecurityConfig {
             .authorizeRequests()
             // 放行登录接口
             .antMatchers("/api/sales/login", "/api/admin/login").permitAll()
-            // 放行健康检查
-            .antMatchers("/actuator/health").permitAll()
+            // 放行健康检查和文档
+            .antMatchers("/actuator/health", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+            // 放行所有API请求(由JWT拦截器处理认证)
+            .antMatchers("/api/**").permitAll()
             // 其他请求需要认证
             .anyRequest().authenticated()
             .and()
