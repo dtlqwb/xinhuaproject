@@ -18,11 +18,9 @@ export interface Customer {
 
 // 添加客户
 export const addCustomer = (data: FormData) => {
-  return request.post<Customer>('/customer/add', data, {
-    headers: {
-      'Content-Type': 'multipart/form-data'
-    }
-  })
+  // ⚠️ 注意: 不要手动设置 Content-Type
+  // axios 拦截器会自动处理 FormData，让浏览器设置正确的 boundary
+  return request.post<Customer>('/customer/add', data)
 }
 
 // 查询客户列表
