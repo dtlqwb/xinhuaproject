@@ -37,8 +37,9 @@ jobs:
           echo "[2/4] 停止旧服务..."
           docker-compose down || true
           
-          echo "[3/4] 构建并启动服务..."
-          docker-compose up -d --build
+          echo "[3/4] 构建并启动服务(强制重新构建后端)..."
+          docker-compose build --no-cache backend
+          docker-compose up -d
           
           echo "[4/4] 等待服务启动..."
           sleep 10
