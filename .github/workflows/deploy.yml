@@ -36,7 +36,7 @@ jobs:
           
           echo "[2/5] 编译后端Java代码..."
           cd xinhuaproject/backend
-          mvn clean package -DskipTests
+          mvn clean package -Dmaven.test.skip=true
           cd ..
           
           echo "[3/5] 停止旧服务..."
