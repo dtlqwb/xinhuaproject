@@ -25,6 +25,7 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-root123}
       JWT_SECRET: ${JWT_SECRET:-salesCustomerSystemSecretKey2024Production}
       FILE_UPLOAD_PATH: /data/uploads/
+      ALIYUN_BAILIAN_API_KEY: ${ALIYUN_BAILIAN_API_KEY}
     volumes:
       - upload-data:/data/uploads
       - log-data:/data/logs
