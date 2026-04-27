@@ -1,7 +1,12 @@
 import axios from 'axios'
 
+// 生产环境使用服务器IP,开发环境使用代理
+const API_BASE_URL = import.meta.env.PROD 
+  ? 'http://82.156.165.194:8080/api' 
+  : '/api'
+
 const request = axios.create({
-  baseURL: '/api',
+  baseURL: API_BASE_URL,
   timeout: 10000
 })
 
