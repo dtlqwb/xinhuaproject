@@ -96,7 +96,7 @@ const loadCustomers = async () => {
   loading.value = true
   try {
     const response = await request.get<any>('/admin/customers')
-    customers.value = response.data || []
+    customers.value = response || []
   } catch (error: any) {
     console.error('加载客户列表失败:', error)
   } finally {
