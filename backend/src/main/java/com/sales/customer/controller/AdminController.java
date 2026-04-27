@@ -5,8 +5,12 @@ import com.sales.customer.common.Result;
 import com.sales.customer.dto.LoginRequest;
 import com.sales.customer.dto.LoginResponse;
 import com.sales.customer.entity.Customer;
+import com.sales.customer.entity.DailyReport;
+import com.sales.customer.entity.MarketingPlan;
 import com.sales.customer.service.AdminService;
 import com.sales.customer.service.CustomerService;
+import com.sales.customer.service.DailyReportService;
+import com.sales.customer.service.MarketingPlanService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,6 +29,8 @@ public class AdminController {
     
     private final AdminService adminService;
     private final CustomerService customerService;
+    private final DailyReportService dailyReportService;
+    private final MarketingPlanService marketingPlanService;
     
     /**
      * 管理员登录
@@ -72,9 +78,15 @@ public class AdminController {
             long todayCustomers = customerService.count(todayQuery);
             stats.put("todayCustomers", todayCustomers);
             
-            // TODO: 日报总数和待执行方案需要对应的Service
-            stats.put("totalReports", 0);
-            stats.put("pendingPlans", 0);
+            // 日报总数
+            long totalReports = dailyReportService.count();
+            stats.put("totalReports", totalReports);
+            
+            // 待执行方案数
+            QueryWrapper<MarketingPlan> pendingQuery = new QueryWrapper<>();
+            pendingQuery.in("status", "pending", "executing");
+            long pendingPlans = marketingPlanService.count(pendingQuery);
+            stats.put("pendingPlans", pendingPlans);
             
             return Result.success(stats);
         } catch (Exception e) {

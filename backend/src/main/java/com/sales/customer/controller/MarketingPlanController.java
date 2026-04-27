@@ -2,71 +2,27 @@ package com.sales.customer.controller;
 
 import com.sales.customer.common.Result;
 import com.sales.customer.entity.MarketingPlan;
-import com.sales.customer.entity.Customer;
 import com.sales.customer.service.MarketingPlanService;
-import com.sales.customer.service.CustomerService;
-import com.sales.customer.service.AiService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/plan")
+@RequestMapping("/api/admin/plans")
 @RequiredArgsConstructor
 @CrossOrigin
 public class MarketingPlanController {
     
     private final MarketingPlanService marketingPlanService;
-    private final CustomerService customerService;
-    private final AiService aiService;
     
     /**
-     * 生成营销方案
+     * 获取所有营销方案列表
      */
-    @PostMapping("/generate")
-    public Result<MarketingPlan> generatePlan(@RequestParam Long customerId) {
+    @GetMapping
+    public Result<List<MarketingPlan>> getAllPlans() {
         try {
-            // 查询客户信息
-            Customer customer = customerService.getById(customerId);
-            if (customer == null) {
-                return Result.error("客户不存在");
-            }
-            
-            // 调用AI生成营销方案
-            String planContent = aiService.generateMarketingPlan(customer);
-            
-            // 保存营销方案
-            MarketingPlan plan = new MarketingPlan();
-            plan.setCustomerId(customerId);
-            plan.setPlanContent(planContent);
-            plan.setPriority("medium");
-            plan.setStatus("pending");
-            
-            marketingPlanService.save(plan);
-            
-            return Result.success(plan);
-        } catch (Exception e) {
-            return Result.error(e.getMessage());
-        }
-    }
-    
-    /**
-     * 批量生成营销方案
-     */
-    @PostMapping("/batch-generate")
-    public Result<List<MarketingPlan>> batchGeneratePlans(@RequestBody List<Long> customerIds) {
-        try {
-            if (customerIds == null || customerIds.isEmpty()) {
-                return Result.error("客户ID列表不能为空");
-            }
-            
-            List<MarketingPlan> plans = marketingPlanService.batchGeneratePlans(customerIds);
-            
-            if (plans.isEmpty()) {
-                return Result.error("所有方案生成失败");
-            }
-            
+            List<MarketingPlan> plans = marketingPlanService.list();
             return Result.success(plans);
         } catch (Exception e) {
             return Result.error(e.getMessage());
@@ -74,25 +30,53 @@ public class MarketingPlanController {
     }
     
     /**
-     * 查询营销方案列表
-     */
-    @GetMapping("/list")
-    public Result<List<MarketingPlan>> getPlans() {
-        try {
-            List<MarketingPlan> plans = marketingPlanService.getAllPlans();
-            return Result.success(plans);
-        } catch (Exception e) {
-            return Result.error(e.getMessage());
-        }
-    }
-    
-    /**
-     * 查询客户的营销方案
+     * 根据客户ID查询营销方案列表
      */
     @GetMapping("/customer/{customerId}")
-    public Result<MarketingPlan> getPlanByCustomer(@PathVariable Long customerId) {
+    public Result<List<MarketingPlan>> getPlansByCustomerId(@PathVariable Long customerId) {
         try {
-            MarketingPlan plan = marketingPlanService.getPlanByCustomerId(customerId);
+            List<MarketingPlan> plans = marketingPlanService.getPlansByCustomerId(customerId);
+            return Result.success(plans);
+        } catch (Exception e) {
+            return Result.error(e.getMessage());
+        }
+    }
+    
+    /**
+     * 根据销售ID查询营销方案列表
+     */
+    @GetMapping("/sales/{salesId}")
+    public Result<List<MarketingPlan>> getPlansBySalesId(@PathVariable Long salesId) {
+        try {
+            List<MarketingPlan> plans = marketingPlanService.getPlansBySalesId(salesId);
+            return Result.success(plans);
+        } catch (Exception e) {
+            return Result.error(e.getMessage());
+        }
+    }
+    
+    /**
+     * 创建营销方案
+     */
+    @PostMapping
+    public Result<MarketingPlan> createPlan(@RequestBody MarketingPlan plan) {
+        try {
+            MarketingPlan created = marketingPlanService.createPlan(plan);
+            return Result.success(created);
+        } catch (Exception e) {
+            return Result.error(e.getMessage());
+        }
+    }
+    
+    /**
+     * 更新营销方案
+     */
+    @PutMapping("/{id}")
+    public Result<MarketingPlan> updatePlan(@PathVariable Long id, 
+                                            @RequestBody MarketingPlan plan) {
+        try {
+            plan.setId(id);
+            marketingPlanService.updateById(plan);
             return Result.success(plan);
         } catch (Exception e) {
             return Result.error(e.getMessage());
@@ -100,13 +84,41 @@ public class MarketingPlanController {
     }
     
     /**
-     * 更新执行状态
+     * 更新方案状态
      */
-    @PutMapping("/{id}/execute")
-    public Result<Boolean> updateExecuteStatus(@PathVariable Long id) {
+    @PostMapping("/{id}/status")
+    public Result<Void> updatePlanStatus(@PathVariable Long id,
+                                         @RequestParam String status) {
         try {
-            boolean success = marketingPlanService.markAsExecuted(id);
-            return Result.success(success);
+            marketingPlanService.updatePlanStatus(id, status);
+            return Result.success();
+        } catch (Exception e) {
+            return Result.error(e.getMessage());
+        }
+    }
+    
+    /**
+     * 完成方案
+     */
+    @PostMapping("/{id}/complete")
+    public Result<Void> completePlan(@PathVariable Long id,
+                                     @RequestParam(required = false) String result) {
+        try {
+            marketingPlanService.completePlan(id, result);
+            return Result.success();
+        } catch (Exception e) {
+            return Result.error(e.getMessage());
+        }
+    }
+    
+    /**
+     * 删除营销方案
+     */
+    @DeleteMapping("/{id}")
+    public Result<Void> deletePlan(@PathVariable Long id) {
+        try {
+            marketingPlanService.removeById(id);
+            return Result.success();
         } catch (Exception e) {
             return Result.error(e.getMessage());
         }
