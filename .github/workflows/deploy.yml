@@ -34,14 +34,19 @@ jobs:
             cd xinhuaproject
           fi
           
-          echo "[2/4] 停止旧服务..."
+          echo "[2/5] 编译后端Java代码..."
+          cd xinhuaproject/backend
+          mvn clean package -DskipTests
+          cd ..
+          
+          echo "[3/5] 停止旧服务..."
           docker-compose down || true
           
-          echo "[3/4] 构建并启动服务(强制重新构建后端)..."
+          echo "[4/5] 构建并启动服务..."
           docker-compose build --no-cache backend
           docker-compose up -d
           
-          echo "[4/4] 等待服务启动..."
+          echo "[5/5] 等待服务启动..."
           sleep 10
           
           echo ""
