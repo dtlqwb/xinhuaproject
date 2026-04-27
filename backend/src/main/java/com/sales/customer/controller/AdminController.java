@@ -1,5 +1,6 @@
 package com.sales.customer.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.sales.customer.common.Result;
 import com.sales.customer.dto.LoginRequest;
 import com.sales.customer.dto.LoginResponse;
@@ -9,7 +10,12 @@ import com.sales.customer.service.CustomerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -41,6 +47,36 @@ public class AdminController {
         try {
             List<Customer> customers = customerService.list();
             return Result.success(customers);
+        } catch (Exception e) {
+            return Result.error(e.getMessage());
+        }
+    }
+    
+    /**
+     * 获取Dashboard统计数据
+     */
+    @GetMapping("/dashboard")
+    public Result<Map<String, Object>> getDashboardStats() {
+        try {
+            Map<String, Object> stats = new HashMap<>();
+            
+            // 总客户数
+            long totalCustomers = customerService.count();
+            stats.put("totalCustomers", totalCustomers);
+            
+            // 今日新增客户数
+            LocalDateTime todayStart = LocalDateTime.of(LocalDate.now(), LocalTime.MIN);
+            LocalDateTime todayEnd = LocalDateTime.of(LocalDate.now(), LocalTime.MAX);
+            QueryWrapper<Customer> todayQuery = new QueryWrapper<>();
+            todayQuery.between("create_time", todayStart, todayEnd);
+            long todayCustomers = customerService.count(todayQuery);
+            stats.put("todayCustomers", todayCustomers);
+            
+            // TODO: 日报总数和待执行方案需要对应的Service
+            stats.put("totalReports", 0);
+            stats.put("pendingPlans", 0);
+            
+            return Result.success(stats);
         } catch (Exception e) {
             return Result.error(e.getMessage());
         }
