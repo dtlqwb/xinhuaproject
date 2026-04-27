@@ -2,8 +2,26 @@
 
 ## 📦 项目状态
 
-✅ **Taro项目脚手架已创建**  
-⏳ **待完成**: 页面代码迁移、语音识别改造
+### ✅ 已完成 (2026-04-27)
+- [x] 项目脚手架搭建
+- [x] 依赖安装
+- [x] 基础配置文件 (package.json, config/)
+- [x] 全局应用入口 (app.ts, app.config.ts)
+- [x] API请求模块 (utils/request.ts)
+- [x] 销售端API (api/sales.ts, api/customer.ts)
+- [x] 用户状态管理 (stores/user.ts) - 使用Taro.storage替代localStorage
+- [x] Pinia集成 (stores/index.ts)
+- [x] 登录页面 (pages/login/index.vue)
+- [x] 首页 (pages/index/index.vue) - 包含客户列表和提交功能
+
+### ⏳ 待完成
+- [ ] 语音输入组件 (components/VoiceInputBar.vue)
+- [ ] 客户卡片组件 (components/CustomerCard.vue)
+- [ ] 语音识别改造 (浏览器API → 小程序录音 + 后端识别)
+- [ ] H5版本测试
+- [ ] 编译为微信小程序
+- [ ] 微信开发者工具调试
+- [ ] 提交审核发布
 
 ---
 

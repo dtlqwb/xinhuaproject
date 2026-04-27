@@ -1,5 +1,9 @@
 <script setup lang="ts">
 import { onLaunch, onShow, onHide } from '@tarojs/taro'
+import pinia from './stores'
+
+// 初始化 Pinia
+pinia
 
 onLaunch(() => {
   console.log('App Launch')
