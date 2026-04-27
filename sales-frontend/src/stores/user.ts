@@ -4,7 +4,9 @@ import type { UserInfo } from '@/api/sales'
 import type { Customer } from '@/api/customer'
 
 export const useUserStore = defineStore('user', () => {
-  const userInfo = ref<UserInfo | null>(null)
+  // 从localStorage恢复用户信息
+  const savedUserInfo = localStorage.getItem('userInfo')
+  const userInfo = ref<UserInfo | null>(savedUserInfo ? JSON.parse(savedUserInfo) : null)
   const todayCustomers = ref<Customer[]>([])
   
   const setUserInfo = (info: UserInfo) => {
