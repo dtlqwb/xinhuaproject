@@ -1,6 +1,10 @@
 <template>
   <div class="customers-page">
-    <van-nav-bar title="客户管理" left-arrow @click-left="$router.back()" />
+    <van-nav-bar title="客户管理" left-arrow @click-left="$router.back()">
+      <template #right>
+        <van-icon name="down" size="20" @click="exportCustomers" />
+      </template>
+    </van-nav-bar>
     
     <!-- 筛选栏 -->
     <div class="filter-bar">
@@ -119,6 +123,25 @@ const filteredCustomers = computed(() => {
 // 搜索
 const handleSearch = () => {
   // 前端过滤即可
+}
+
+// 导出Excel
+const exportCustomers = () => {
+  const API_BASE_URL = import.meta.env.PROD 
+    ? 'http://82.156.165.194:8080' 
+    : 'http://localhost:8080'
+  
+  const token = localStorage.getItem('admin_token')
+  const url = `${API_BASE_URL}/api/admin/export/customers`
+  
+  // 创建隐藏的a标签下载
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `客户明细_${new Date().getTime()}.xlsx`
+  link.target = '_blank'
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
 }
 
 // 显示详情
