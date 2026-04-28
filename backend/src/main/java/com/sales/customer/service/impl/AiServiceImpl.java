@@ -1,5 +1,7 @@
 package com.sales.customer.service.impl;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sales.customer.client.AliyunBailianClient;
 import com.sales.customer.entity.Customer;
 import com.sales.customer.service.AiService;
@@ -16,6 +18,7 @@ import java.util.regex.Pattern;
 public class AiServiceImpl implements AiService {
     
     private final AliyunBailianClient aiClient;
+    private final ObjectMapper objectMapper = new ObjectMapper();
     
     @Override
     public Customer parseCustomerInfo(String content) {
@@ -44,9 +47,8 @@ public class AiServiceImpl implements AiService {
             String aiResponse = aiClient.callAI(prompt);
             log.info("AI响应: {}", aiResponse);
             
-            // 简单解析（实际应该用JSON解析库）
-            // 这里为了简化，仍然使用正则提取
-            extractWithRegex(customer, content);
+            // 解析AI返回的JSON
+            parseAiResponse(customer, aiResponse);
             
         } catch (Exception e) {
             log.error("AI解析失败，使用正则降级: {}", e.getMessage());
@@ -56,6 +58,52 @@ public class AiServiceImpl implements AiService {
         
         log.info("解析结果: {}", customer);
         return customer;
+    }
+    
+    /**
+     * 解析AI返回的JSON响应
+     */
+    private void parseAiResponse(Customer customer, String aiResponse) throws Exception {
+        // 尝试提取JSON部分（可能包含markdown格式）
+        String jsonStr = aiResponse;
+        
+        // 如果响应包含```json标记，提取其中的内容
+        if (aiResponse.contains("```json")) {
+            int start = aiResponse.indexOf("```json") + 7;
+            int end = aiResponse.indexOf("```", start);
+            if (end > start) {
+                jsonStr = aiResponse.substring(start, end).trim();
+            }
+        } else if (aiResponse.contains("```")) {
+            int start = aiResponse.indexOf("```") + 3;
+            int end = aiResponse.indexOf("```", start);
+            if (end > start) {
+                jsonStr = aiResponse.substring(start, end).trim();
+            }
+        }
+        
+        // 解析JSON
+        JsonNode root = objectMapper.readTree(jsonStr);
+        
+        // 提取字段
+        if (root.has("name") && !root.get("name").isNull()) {
+            customer.setName(root.get("name").asText());
+        }
+        if (root.has("company") && !root.get("company").isNull()) {
+            customer.setCompany(root.get("company").asText());
+        }
+        if (root.has("position") && !root.get("position").isNull()) {
+            customer.setPosition(root.get("position").asText());
+        }
+        if (root.has("phone") && !root.get("phone").isNull()) {
+            customer.setPhone(root.get("phone").asText());
+        }
+        if (root.has("requirement") && !root.get("requirement").isNull()) {
+            customer.setRequirement(root.get("requirement").asText());
+        }
+        
+        log.info("AI JSON解析成功: name={}, company={}, position={}, phone={}", 
+                customer.getName(), customer.getCompany(), customer.getPosition(), customer.getPhone());
     }
     
     /**
