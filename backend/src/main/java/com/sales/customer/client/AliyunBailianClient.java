@@ -43,33 +43,33 @@ public class AliyunBailianClient {
      */
     public String callAI(String prompt) {
         try {
-            log.info("调用阿里百炼AI, 模型: {}", model);
+            log.info("调用阿里百炼AI, 模型: {}, URL: {}", model, baseUrl);
 
-            // 构建请求体
+            // 构建请求体（OpenAI兼容格式）
             Map<String, Object> requestBody = new HashMap<>();
             requestBody.put("model", model);
 
-            Map<String, Object> input = new HashMap<>();
             Map<String, Object>[] messages = new Map[]{
                     createMessage("system", "你是一个专业的销售助手，擅长分析客户信息、生成营销方案和日报。请用简洁、专业的中文回答。"),
                     createMessage("user", prompt)
             };
-            input.put("messages", messages);
-            requestBody.put("input", input);
+            requestBody.put("messages", messages);
 
             Map<String, Object> parameters = new HashMap<>();
             parameters.put("result_format", "message");
             requestBody.put("parameters", parameters);
 
-            // 发送请求
+            // 发送请求 - 使用OpenAI兼容的API路径
             String response = webClient.post()
-                    .uri(baseUrl + "/services/aigc/text-generation/generation")
+                    .uri(baseUrl + "/chat/completions")
                     .contentType(MediaType.APPLICATION_JSON)
                     .header("Authorization", "Bearer " + apiKey)
                     .bodyValue(requestBody)
                     .retrieve()
                     .bodyToMono(String.class)
                     .block();
+
+            log.info("AI响应原始数据: {}", response);
 
             // 解析响应
             return parseResponse(response);
@@ -92,12 +92,19 @@ public class AliyunBailianClient {
     }
 
     /**
-     * 解析AI响应
+     * 解析AI响应（支持OpenAI兼容格式和百炼原生格式）
      */
     private String parseResponse(String response) throws Exception {
         JsonNode root = objectMapper.readTree(response);
 
         // 检查是否有错误
+        if (root.has("error")) {
+            JsonNode error = root.get("error");
+            String message = error.has("message") ? error.get("message").asText() : "未知错误";
+            log.error("AI API返回错误: {}", message);
+            throw new RuntimeException("AI服务错误: " + message);
+        }
+
         if (root.has("code")) {
             String code = root.get("code").asText();
             String message = root.has("message") ? root.get("message").asText() : "未知错误";
@@ -105,7 +112,20 @@ public class AliyunBailianClient {
             throw new RuntimeException("AI服务错误: " + message);
         }
 
-        // 提取生成的内容
+        // OpenAI兼容格式: {"choices": [{"message": {"content": "..."}}]}
+        if (root.has("choices")) {
+            JsonNode choices = root.get("choices");
+            if (choices.isArray() && choices.size() > 0) {
+                JsonNode firstChoice = choices.get(0);
+                if (firstChoice.has("message") && firstChoice.get("message").has("content")) {
+                    String content = firstChoice.get("message").get("content").asText();
+                    log.info("AI解析成功: {}", content.substring(0, Math.min(100, content.length())));
+                    return content;
+                }
+            }
+        }
+
+        // 百炼原生格式: {"output": {"choices": [...]}}
         if (root.has("output") && root.get("output").has("choices")) {
             JsonNode choices = root.get("output").get("choices");
             if (choices.isArray() && choices.size() > 0) {
@@ -116,6 +136,7 @@ public class AliyunBailianClient {
             }
         }
 
+        log.error("无法解析AI响应: {}", response.substring(0, Math.min(200, response.length())));
         throw new RuntimeException("无法解析AI响应");
     }
 
