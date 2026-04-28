@@ -2,7 +2,7 @@
   <div class="reports-page">
     <van-nav-bar title="日报管理" left-arrow @click-left="$router.back()">
       <template #right>
-        <van-icon name="plus" size="20" @click="showCreateDialog = true" />
+        <van-icon name="setting-o" size="20" @click="showGenerateDialog = true" />
       </template>
     </van-nav-bar>
 
@@ -115,6 +115,24 @@
         placeholder="请输入审核意见"
       />
     </van-dialog>
+
+    <!-- 生成日报对话框 -->
+    <van-dialog
+      v-model:show="showGenerateDialog"
+      title="生成日报"
+      show-cancel-button
+      @confirm="generateDailyReport"
+    >
+      <van-field
+        v-model="reportDate"
+        type="date"
+        placeholder="选择日期"
+        label="日报日期"
+      />
+      <div style="padding: 16px; color: #999; font-size: 12px;">
+        系统将汇总当天所有销售人员录入的客户信息，AI自动生成日报总结
+      </div>
+    </van-dialog>
   </div>
 </template>
 
@@ -148,10 +166,11 @@ const finished = ref(false)
 const refreshing = ref(false)
 const searchKeyword = ref('')
 const showDetail = ref(false)
-const showCreateDialog = ref(false)
+const showGenerateDialog = ref(false)
 const showReviewDialog = ref(false)
 const currentReport = ref<Report | null>(null)
 const reviewComment = ref('')
+const reportDate = ref(new Date().toISOString().split('T')[0])
 
 onMounted(() => {
   loadReports()
@@ -176,6 +195,33 @@ const onLoad = () => {
 const showReportDetail = (report: Report) => {
   currentReport.value = report
   showDetail.value = true
+}
+
+// AI生成日报
+const generateDailyReport = async () => {
+  if (!reportDate.value) {
+    showToast('请选择日期')
+    return
+  }
+  
+  showToast({
+    message: 'AI正在生成日报，请稍候...',
+    duration: 0,
+    forbidClick: true,
+    loadingType: 'spinner'
+  })
+  
+  try {
+    const result = await request.post('/admin/reports/generate', null, {
+      params: { date: reportDate.value }
+    })
+    
+    showToast('日报生成成功')
+    showGenerateDialog.value = false
+    loadReports()
+  } catch (error: any) {
+    showToast(error.message || '生成失败')
+  }
 }
 
 const submitReport = async (id: number) => {
