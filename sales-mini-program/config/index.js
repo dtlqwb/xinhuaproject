@@ -7,6 +7,8 @@ const config = {
     750: 1,
     828: 1.81 / 2
   },
+
+  
   sourceRoot: 'src',
   outputRoot: 'dist',
   plugins: ['@tarojs/plugin-html'],
