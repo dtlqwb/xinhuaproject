@@ -139,6 +139,7 @@ public class AliyunBailianClient {
         log.error("无法解析AI响应: {}", response.substring(0, Math.min(200, response.length())));
         throw new RuntimeException("无法解析AI响应");
     }
+    
 
     /**
      * 降级方案：当AI服务不可用时返回模拟数据
@@ -149,7 +150,7 @@ public class AliyunBailianClient {
         if (prompt.contains("客户信息") || prompt.contains("解析")) {
             return "已解析客户信息";
         } else if (prompt.contains("日报") || prompt.contains("总结")) {
-            return "今日工作总结：\n\n共录入客户信息。\n\n重点客户跟进中。\n\n明日计划：\n1. 跟进重点客户\n2. 继续拓展新客户";
+            return "【今日概览】\n今日工作已完成\n\n【工作内容】\n重点客户跟进中\n\n【存在问题】\n需要加强客户沟通\n\n【明日计划】\n1. 跟进重点客户\n2. 继续拓展新客户";
         } else if (prompt.contains("营销方案") || prompt.contains("策略")) {
             return "营销方案：\n\n1. 深入了解客户需求\n2. 提供定制化解决方案\n3. 安排产品演示\n4. 制定优惠方案";
         }
