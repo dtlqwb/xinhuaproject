@@ -89,9 +89,9 @@ public class DailyReportController {
             prompt.append("3. 【存在问题】- 分析可能存在的问题和挑战\n");
             prompt.append("4. 【明日计划】- 给出明日工作建议\n");
             prompt.append("\n请用简洁专业的语言,分段输出。");
-            
+                    
             // 调用AI生成日报内容
-            String aiResponse = aiService.parseCustomerInfo(prompt.toString()).getRequirement();
+            String aiResponse = aiService.generateDailyReport(customers, 1L);
             
             // 解析AI响应,提取各个部分
             String workContent = extractSection(aiResponse, "工作内容");
