@@ -2,7 +2,8 @@
   <div class="plans-page">
     <van-nav-bar title="营销方案" left-arrow @click-left="$router.back()">
       <template #right>
-        <van-icon name="plus" size="20" @click="showCreateDialog = true" />
+        <van-icon name="plus" size="20" @click="showCreateDialog = true" style="margin-right: 12px" />
+        <van-icon name="magic-stick" size="20" @click="showGenerateDialog = true" />
       </template>
     </van-nav-bar>
 
@@ -181,6 +182,24 @@
         placeholder="请输入执行结果"
       />
     </van-dialog>
+
+    <!-- AI生成方案对话框 -->
+    <van-dialog
+      v-model:show="showGenerateDialog"
+      title="AI生成营销方案"
+      show-cancel-button
+      @confirm="generatePlan"
+    >
+      <van-field
+        v-model="generateCustomerId"
+        type="number"
+        label="客户ID"
+        placeholder="请输入客户ID"
+      />
+      <div style="padding: 16px; color: #999; font-size: 12px">
+        系统将根据客户信息，AI自动生成定制化营销方案
+      </div>
+    </van-dialog>
   </div>
 </template>
 
@@ -216,8 +235,10 @@ const statusFilter = ref('')
 const showDetail = ref(false)
 const showCreateDialog = ref(false)
 const showCompleteDialog = ref(false)
+const showGenerateDialog = ref(false)
 const currentPlan = ref<Plan | null>(null)
 const completeResult = ref('')
+const generateCustomerId = ref('')
 
 const newPlan = ref({
   planName: '',
@@ -328,6 +349,34 @@ const createPlan = async () => {
     loadPlans()
   } catch (error: any) {
     showToast(error.message || '创建失败')
+  }
+}
+
+// AI生成营销方案
+const generatePlan = async () => {
+  if (!generateCustomerId.value) {
+    showToast('请输入客户ID')
+    return
+  }
+  
+  showToast({
+    message: 'AI正在生成营销方案，请稍候...',
+    duration: 0,
+    forbidClick: true,
+    loadingType: 'spinner'
+  })
+  
+  try {
+    const result = await request.post('/admin/plans/generate', null, {
+      params: { customerId: generateCustomerId.value }
+    })
+    
+    showToast('方案生成成功')
+    showGenerateDialog.value = false
+    generateCustomerId.value = ''
+    loadPlans()
+  } catch (error: any) {
+    showToast(error.message || '生成失败')
   }
 }
 
