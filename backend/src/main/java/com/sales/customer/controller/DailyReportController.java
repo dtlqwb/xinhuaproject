@@ -126,19 +126,53 @@ public class DailyReportController {
      * 从AI响应中提取指定部分
      */
     private String extractSection(String response, String sectionName) {
-        int startIndex = response.indexOf(sectionName);
-        if (startIndex == -1) return "";
+        // 尝试多种格式: 【工作内容】、工作内容、1. 工作内容
+        String[] patterns = {
+            "【" + sectionName + "】",
+            "【" + sectionName + "】:",
+            sectionName + ":",
+            sectionName + "：",
+            "1. " + sectionName,
+            "2. " + sectionName,
+            "3. " + sectionName,
+            "4. " + sectionName
+        };
         
-        int endIndex = response.length();
-        String[] markers = {"【", "1.", "2.", "3.", "4."};
-        for (String marker : markers) {
-            int pos = response.indexOf(marker, startIndex + sectionName.length());
-            if (pos != -1 && pos < endIndex) {
-                endIndex = pos;
+        int startIndex = -1;
+        for (String pattern : patterns) {
+            startIndex = response.indexOf(pattern);
+            if (startIndex != -1) {
+                startIndex += pattern.length();
+                break;
             }
         }
         
-        return response.substring(startIndex + sectionName.length(), endIndex).trim();
+        if (startIndex == -1) {
+            log.warn("未找到章节: {}", sectionName);
+            return "";
+        }
+        
+        // 查找下一个章节的开始位置
+        int endIndex = response.length();
+        String[] nextMarkers = {"【今日概览】", "【工作内容】", "【存在问题】", "【明日计划】", "\n\n", "\n##", "\n#"};
+        
+        for (String marker : nextMarkers) {
+            int pos = response.indexOf(marker, startIndex);
+            if (pos != -1 && pos > startIndex && pos < endIndex) {
+                // 检查是否真的是下一个章节(跳过当前章节内部的可能匹配)
+                if (!response.substring(startIndex, pos).contains(marker)) {
+                    endIndex = pos;
+                }
+            }
+        }
+        
+        String content = response.substring(startIndex, endIndex).trim();
+        // 清理开头的标点符号
+        if (content.startsWith(":") || content.startsWith("：")) {
+            content = content.substring(1).trim();
+        }
+        
+        return content;
     }
     
     /**
