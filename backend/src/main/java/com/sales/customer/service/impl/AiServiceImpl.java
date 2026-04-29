@@ -178,7 +178,8 @@ public class AiServiceImpl implements AiService {
     }
     
     /**
-     * 降级方案：生成模拟日报
+     * 降级方案：生成模拟日报 (VERSION 2026-04-29-FIX)
+     * 此版本包含正确的章节标记: 【工作内容】、【存在问题】、【明日计划】
      */
     private String generateFallbackDailyReport(List<Customer> customers) {
         StringBuilder report = new StringBuilder();
