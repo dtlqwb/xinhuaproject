@@ -182,21 +182,29 @@ public class AiServiceImpl implements AiService {
      */
     private String generateFallbackDailyReport(List<Customer> customers) {
         StringBuilder report = new StringBuilder();
-        report.append("今日工作总结：\n\n");
-        report.append("共录入").append(customers.size()).append("个客户信息。\n\n");
-        report.append("重点客户：\n");
+        report.append("【今日概览】\n");
+        report.append("今日共录入").append(customers.size()).append("个客户信息。\n\n");
         
+        report.append("【工作内容】\n");
+        report.append("重点客户跟进情况：\n");
         customers.stream()
-            .limit(3)
+            .limit(5)
             .forEach(c -> {
                 report.append("- ").append(c.getName())
-                      .append("（").append(c.getCompany()).append("）")
+                      .append("（").append(c.getCompany()).append("）：")
+                      .append(c.getRequirement() != null ? c.getRequirement() : "待了解需求")
                       .append("\n");
             });
+        report.append("\n");
         
-        report.append("\n明日计划：\n");
-        report.append("1. 跟进重点客户\n");
-        report.append("2. 继续拓展新客户\n");
+        report.append("【存在问题】\n");
+        report.append("1. 部分客户需求尚不明确，需要进一步沟通\n");
+        report.append("2. 需要加强重点客户的跟进频率\n\n");
+        
+        report.append("【明日计划】\n");
+        report.append("1. 跟进待确认需求的客户\n");
+        report.append("2. 继续拓展新客户资源\n");
+        report.append("3. 准备重点客户的方案资料\n");
         
         return report.toString();
     }
