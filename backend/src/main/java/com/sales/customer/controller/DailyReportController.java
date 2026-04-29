@@ -92,6 +92,7 @@ public class DailyReportController {
                     
             // 调用AI生成日报内容
             String aiResponse = aiService.generateDailyReport(customers, 1L);
+            log.info("AI响应内容: {}", aiResponse);
             
             // 解析AI响应,提取各个部分
             String workContent = extractSection(aiResponse, "工作内容");
