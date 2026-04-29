@@ -2,6 +2,9 @@ package com.sales.customer.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -11,10 +14,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
-import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,32 +37,23 @@ public class AliyunBailianClient {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public AliyunBailianClient() {
-        // 创建信任所有证书的SSLContext(用于开发环境)
+        WebClient.Builder builder = WebClient.builder();
+        
+        // 创建信任所有证书的SslContext(用于开发环境)
         try {
-            SSLContext sslContext = SSLContext.getInstance("TLS");
-            sslContext.init(null, new TrustManager[]{new X509TrustManager() {
-                @Override
-                public void checkClientTrusted(X509Certificate[] chain, String authType) {}
-                
-                @Override
-                public void checkServerTrusted(X509Certificate[] chain, String authType) {}
-                
-                @Override
-                public X509Certificate[] getAcceptedIssuers() {
-                    return new X509Certificate[0];
-                }
-            }}, new java.security.SecureRandom());
+            SslContext sslContext = SslContextBuilder.forClient()
+                .trustManager(InsecureTrustManagerFactory.INSTANCE)
+                .build();
             
             HttpClient httpClient = HttpClient.create()
                 .secure(t -> t.sslContext(sslContext));
             
-            this.webClient = WebClient.builder()
-                .clientConnector(new ReactorClientHttpConnector(httpClient))
-                .build();
+            builder.clientConnector(new ReactorClientHttpConnector(httpClient));
         } catch (Exception e) {
-            log.error("初始化SSL上下文失败", e);
-            this.webClient = WebClient.builder().build();
+            log.error("初始化SSL上下文失败,使用默认配置", e);
         }
+        
+        this.webClient = builder.build();
     }
 
     /**
