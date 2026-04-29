@@ -25,6 +25,8 @@ public class SecurityConfig {
             .antMatchers("/api/sales/login", "/api/admin/login").permitAll()
             // 放行健康检查和文档
             .antMatchers("/actuator/health", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+            // 放行所有OPTIONS预检请求
+            .antMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
             // 放行所有API请求(由JWT拦截器处理认证)
             .antMatchers("/api/**").permitAll()
             // 其他请求需要认证
