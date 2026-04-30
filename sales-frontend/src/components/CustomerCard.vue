@@ -1,11 +1,24 @@
 <template>
   <div class="customer-card" @click="showDetail">
     <div class="card-header">
-      <span class="icon">🎤</span>
+      <div class="avatar">👤</div>
       <div class="info">
-        <div class="name">{{ customer.name || '未命名客户' }}</div>
-        <div class="company">{{ customer.company || '未知公司' }}</div>
+        <div class="name-row">
+          <span class="name">{{ customer.name || '未命名客户' }}</span>
+          <span v-if="customer.position" class="position-tag">{{ customer.position }}</span>
+        </div>
+        <div v-if="customer.company" class="company">{{ customer.company }}</div>
       </div>
+    </div>
+    
+    <div v-if="customer.phone" class="contact-info">
+      <span class="icon">📱</span>
+      <span class="phone">{{ customer.phone }}</span>
+    </div>
+    
+    <div v-if="customer.requirement" class="requirement">
+      <div class="label">💡 需求</div>
+      <div class="content">{{ customer.requirement }}</div>
     </div>
     
     <div v-if="customer.attachmentCount && customer.attachmentCount > 0" class="attachments">
@@ -13,8 +26,8 @@
       <span class="attach-count">{{ customer.attachmentCount }}个附件</span>
     </div>
     
-    <div v-if="customer.phone" class="phone">
-      {{ customer.phone }}
+    <div class="time-info">
+      {{ formatTime(customer.createTime) }}
     </div>
   </div>
 </template>
@@ -27,8 +40,18 @@ defineProps<{
   customer: Customer
 }>()
 
+// 格式化时间
+const formatTime = (time?: string) => {
+  if (!time) return ''
+  const date = new Date(time)
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  return `${hours}:${minutes}`
+}
+
 const showDetail = () => {
-  const customer = defineProps<{ customer: Customer }>().customer
+  const props = defineProps<{ customer: Customer }>()
+  const customer = props.customer
   
   let content = `姓名：${customer.name || '未填写'}\n`
   content += `公司：${customer.company || '未填写'}\n`
@@ -61,6 +84,7 @@ const showDetail = () => {
   cursor: pointer;
   transition: all 0.3s ease;
   animation: slideIn 0.3s ease;
+  border-left: 3px solid #667eea;
 }
 
 @keyframes slideIn {
@@ -76,33 +100,92 @@ const showDetail = () => {
 
 .customer-card:active {
   transform: scale(0.98);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
 }
 
 .card-header {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
-.icon {
-  font-size: 24px;
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: white;
 }
 
 .info {
   flex: 1;
 }
 
+.name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
 .name {
   font-size: 16px;
   font-weight: bold;
   color: #333;
-  margin-bottom: 4px;
+}
+
+.position-tag {
+  font-size: 11px;
+  padding: 2px 8px;
+  background: #f0f0ff;
+  color: #667eea;
+  border-radius: 10px;
 }
 
 .company {
-  font-size: 14px;
+  font-size: 13px;
   color: #666;
+}
+
+.contact-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 0;
+  border-top: 1px solid #f5f5f5;
+}
+
+.icon {
+  font-size: 14px;
+}
+
+.phone {
+  font-size: 13px;
+  color: #666;
+}
+
+.requirement {
+  margin-top: 8px;
+  padding: 10px;
+  background: #fafafa;
+  border-radius: 8px;
+}
+
+.label {
+  font-size: 12px;
+  color: #999;
+  margin-bottom: 4px;
+}
+
+.content {
+  font-size: 13px;
+  color: #333;
+  line-height: 1.5;
 }
 
 .attachments {
@@ -123,9 +206,10 @@ const showDetail = () => {
   color: #667eea;
 }
 
-.phone {
+.time-info {
   margin-top: 8px;
-  font-size: 13px;
-  color: #999;
+  font-size: 11px;
+  color: #ccc;
+  text-align: right;
 }
 </style>

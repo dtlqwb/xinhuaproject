@@ -19,17 +19,32 @@
     </div>
     
     <!-- 客户列表区域 -->
-    <div class="customer-list" ref="customerListRef">
-      <CustomerCard
-        v-for="customer in customerStore.todayCustomers"
-        :key="customer.id"
-        :customer="customer"
-      />
-      
-      <div v-if="customerStore.todayCustomers.length === 0" class="empty-tip">
-        <van-empty description="暂无客户，请在下方录入" />
+    <van-pull-refresh v-model="refreshing" @refresh="onRefresh">
+      <div class="customer-list" ref="customerListRef">
+        <!-- 加载状态 -->
+        <div v-if="loading" class="loading-state">
+          <van-loading size="24px" vertical>加载中...</van-loading>
+        </div>
+        
+        <!-- 客户卡片列表 -->
+        <CustomerCard
+          v-for="customer in customerStore.todayCustomers"
+          :key="customer.id"
+          :customer="customer"
+        />
+        
+        <!-- 空状态 -->
+        <div v-if="!loading && customerStore.todayCustomers.length === 0" class="empty-tip">
+          <van-empty image-size="80" description="暂无客户记录">
+            <template #description>
+              <div style="color: #999; font-size: 14px; margin-top: 8px">
+                请在下方录入今日拜访的客户信息
+              </div>
+            </template>
+          </van-empty>
+        </div>
       </div>
-    </div>
+    </van-pull-refresh>
     
     <!-- 底部固定输入区 -->
     <CustomerForm @customer-added="handleCustomerAdded" />
@@ -50,12 +65,18 @@ const router = useRouter()
 const customerStore = useUserStore()
 const todayCount = ref(0)
 const customerListRef = ref<HTMLElement>()
+const loading = ref(false)
+const refreshing = ref(false)
 
 // 加载今日客户
-const loadCustomers = async () => {
+const loadCustomers = async (showLoading = true) => {
   if (!customerStore.userInfo) return
   
   try {
+    if (showLoading) {
+      loading.value = true
+    }
+    
     const customers: any = await getCustomers(customerStore.userInfo.id)
     customerStore.loadTodayCustomers(customers)
     
@@ -64,7 +85,16 @@ const loadCustomers = async () => {
     todayCount.value = data.count
   } catch (error: any) {
     showToast('加载失败')
+  } finally {
+    loading.value = false
+    refreshing.value = false
   }
+}
+
+// 下拉刷新
+const onRefresh = () => {
+  refreshing.value = true
+  loadCustomers(false)
 }
 
 // 处理新增客户
@@ -180,7 +210,14 @@ onMounted(() => {
   padding-bottom: 100px;
 }
 
+.loading-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+}
+
 .empty-tip {
-  margin-top: 100px;
+  margin-top: 60px;
 }
 </style>
