@@ -32,7 +32,7 @@
     </div>
     
     <!-- 底部固定输入区 -->
-    <VoiceInputBar @customer-added="handleCustomerAdded" />
+    <CustomerForm @customer-added="handleCustomerAdded" />
   </div>
 </template>
 
@@ -44,7 +44,7 @@ import { useUserStore } from '@/stores/user'
 import { getCustomers } from '@/api/customer'
 import { getTodayCount } from '@/api/sales'
 import CustomerCard from '@/components/CustomerCard.vue'
-import VoiceInputBar from '@/components/VoiceInputBar.vue'
+import CustomerForm from '@/components/CustomerForm.vue'
 
 const router = useRouter()
 const customerStore = useUserStore()
@@ -56,11 +56,11 @@ const loadCustomers = async () => {
   if (!customerStore.userInfo) return
   
   try {
-    const customers = await getCustomers(customerStore.userInfo.id)
+    const customers: any = await getCustomers(customerStore.userInfo.id)
     customerStore.loadTodayCustomers(customers)
     
     // 获取今日数量
-    const data = await getTodayCount(customerStore.userInfo.id)
+    const data: any = await getTodayCount(customerStore.userInfo.id)
     todayCount.value = data.count
   } catch (error: any) {
     showToast('加载失败')
