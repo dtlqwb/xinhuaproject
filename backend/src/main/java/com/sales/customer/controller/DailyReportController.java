@@ -53,25 +53,22 @@ public class DailyReportController {
             
             // 解析日期
             java.time.LocalDate localDate = java.time.LocalDate.parse(date);
+            // 使用更宽泛的时间范围,避免时区问题
             java.time.LocalDateTime startOfDay = localDate.atStartOfDay();
-            java.time.LocalDateTime endOfDay = localDate.atTime(23, 59, 59);
+            java.time.LocalDateTime endOfDay = localDate.plusDays(1).atStartOfDay();
+            
+            log.info("查询时间范围: {} 至 {}", startOfDay, endOfDay);
             
             // 查询当天所有客户信息(使用日期范围查询,避免时区问题)
-            // 注意:需要同时查询create_time在当天或update_time在当天的客户
+            // 注意:查询create_time >= 当天00:00:00 且 create_time < 次日00:00:00
             QueryWrapper<Customer> customerWrapper = new QueryWrapper<Customer>()
-                .and(wrapper -> wrapper
-                    .ge("create_time", startOfDay)
-                    .le("create_time", endOfDay)
-                    .or()
-                    .ge("update_time", startOfDay)
-                    .le("update_time", endOfDay)
-                )
+                .ge("create_time", startOfDay)
+                .lt("create_time", endOfDay)
                 .eq("deleted", 0)
                 .orderByDesc("create_time");
             List<Customer> customers = customerService.list(customerWrapper);
             
-            log.info("查询到 {} 条客户记录, 日期范围: {} 至 {}", 
-                customers.size(), startOfDay, endOfDay);
+            log.info("查询到 {} 条客户记录", customers.size());
             
             if (customers.isEmpty()) {
                 return Result.error(404, "当天没有录入客户信息");
@@ -124,11 +121,31 @@ public class DailyReportController {
             String problems = extractSection(aiResponse, "存在问题");
             String tomorrowPlan = extractSection(aiResponse, "明日计划");
             
-            // 创建日报
+            // 检查是否已存在该日期的日报
+            QueryWrapper<DailyReport> reportWrapper = new QueryWrapper<DailyReport>()
+                .eq("sales_id", defaultSalesId)
+                .eq("report_date", localDate);
+            DailyReport existingReport = dailyReportService.getOne(reportWrapper);
+            
+            if (existingReport != null) {
+                log.info("该日期已存在日报, 更新现有日报, ID: {}", existingReport.getId());
+                // 更新现有日报
+                existingReport.setTodayCustomers(totalCount);
+                existingReport.setFollowUpCustomers((int)followedCount);
+                existingReport.setSignedCustomers((int)convertedCount);
+                existingReport.setWorkContent(workContent);
+                existingReport.setProblems(problems);
+                existingReport.setTomorrowPlan(tomorrowPlan);
+                existingReport.setStatus("draft");
+                dailyReportService.updateById(existingReport);
+                return Result.success(existingReport);
+            }
+            
+            // 创建新日报
             DailyReport report = new DailyReport();
             report.setSalesId(defaultSalesId);
             report.setSalesName(defaultSalesName);
-            report.setReportDate(java.time.LocalDate.parse(date));
+            report.setReportDate(localDate);
             report.setTodayCustomers(totalCount);
             report.setFollowUpCustomers((int)followedCount);
             report.setSignedCustomers((int)convertedCount);
