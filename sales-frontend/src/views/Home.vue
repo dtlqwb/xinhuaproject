@@ -5,7 +5,7 @@
       <div class="left-section">
         <div class="title">今日客户录入</div>
         <div class="user-name" v-if="customerStore.userInfo">
-          <span v-text="'👤 ' + customerStore.userInfo.name"></span>
+          <span>👤 {{ decodeUserInfoName() }}</span>
         </div>
       </div>
       <div class="right-section">
@@ -68,6 +68,16 @@ const todayCount = ref(0)
 const customerListRef = ref<HTMLElement>()
 const loading = ref(false)
 const refreshing = ref(false)
+
+// 解码用户名(处理可能的乱码)
+const decodeUserInfoName = () => {
+  if (!customerStore.userInfo?.name) return ''
+  try {
+    return decodeURIComponent(customerStore.userInfo.name)
+  } catch {
+    return customerStore.userInfo.name
+  }
+}
 
 // 加载今日客户
 const loadCustomers = async (showLoading = true) => {

@@ -77,10 +77,10 @@
           </van-cell-group>
           
           <div class="edit-actions">
-            <van-button round block type="primary" :loading="saving" @click="handleSave">
+            <van-button round block type="primary" :loading="saving" @click.prevent="handleSave">
               保存
             </van-button>
-            <van-button round block plain type="default" style="margin-top: 8px" @click="handleCancel">
+            <van-button round block plain type="default" style="margin-top: 8px" @click.prevent="handleCancel">
               取消
             </van-button>
           </div>
