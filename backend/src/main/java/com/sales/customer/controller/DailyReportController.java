@@ -48,12 +48,21 @@ public class DailyReportController {
         try {
             log.info("开始生成日报, 日期: {}", date);
             
-            // 查询当天所有客户信息
+            // 解析日期
+            java.time.LocalDate localDate = java.time.LocalDate.parse(date);
+            java.time.LocalDateTime startOfDay = localDate.atStartOfDay();
+            java.time.LocalDateTime endOfDay = localDate.atTime(23, 59, 59);
+            
+            // 查询当天所有客户信息(使用日期范围查询,避免时区问题)
             QueryWrapper<Customer> customerWrapper = new QueryWrapper<Customer>()
-                .eq("DATE(create_time)", date)
+                .ge("create_time", startOfDay)
+                .le("create_time", endOfDay)
                 .eq("deleted", 0)
                 .orderByDesc("create_time");
             List<Customer> customers = customerService.list(customerWrapper);
+            
+            log.info("查询到 {} 条客户记录, 日期范围: {} 至 {}", 
+                customers.size(), startOfDay, endOfDay);
             
             if (customers.isEmpty()) {
                 return Result.error(404, "当天没有录入客户信息");
