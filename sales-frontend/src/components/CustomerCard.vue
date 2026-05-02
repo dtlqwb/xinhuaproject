@@ -32,43 +32,38 @@
     </div>
     
     <!-- 编辑对话框 -->
-    <van-popup v-model:show="editVisible" position="bottom" :style="{ height: '70%' }" round>
-      <div class="edit-dialog">
+    <van-popup v-model:show="editVisible" position="bottom" :style="{ height: '70%' }" round @click.stop>
+      <div class="edit-dialog" @click.stop>
         <div class="edit-header">
           <span class="edit-title">编辑客户信息</span>
-          <van-icon name="cross" size="20" @click="editVisible = false" />
+          <van-icon name="cross" size="20" @click.stop="handleCancel" />
         </div>
         
-        <van-form>
+        <div class="edit-form">
           <van-cell-group inset>
             <van-field
               v-model="editForm.name"
-              name="name"
               label="姓名"
               placeholder="请输入客户姓名"
             />
             <van-field
               v-model="editForm.company"
-              name="company"
               label="公司"
               placeholder="请输入公司名称"
             />
             <van-field
               v-model="editForm.position"
-              name="position"
               label="职位"
               placeholder="请输入职位"
             />
             <van-field
               v-model="editForm.phone"
-              name="phone"
               label="电话"
               placeholder="请输入手机号"
               type="tel"
             />
             <van-field
               v-model="editForm.requirement"
-              name="requirement"
               label="需求"
               type="textarea"
               rows="3"
@@ -77,14 +72,14 @@
           </van-cell-group>
           
           <div class="edit-actions">
-            <van-button round block type="primary" :loading="saving" @click.prevent="handleSave">
+            <van-button round block type="primary" :loading="saving" @click.stop="handleSave">
               保存
             </van-button>
-            <van-button round block plain type="default" style="margin-top: 8px" @click.prevent="handleCancel">
+            <van-button round block plain type="default" style="margin-top: 8px" @click.stop="handleCancel">
               取消
             </van-button>
           </div>
-        </van-form>
+        </div>
       </div>
     </van-popup>
   </div>
@@ -184,23 +179,6 @@ const handleCancel = () => {
   transition: all 0.3s ease;
   animation: slideIn 0.3s ease;
   border-left: 3px solid #667eea;
-  cursor: default;
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.customer-card:active {
-  transform: scale(0.98);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
 }
 
 .card-header {
@@ -208,7 +186,6 @@ const handleCancel = () => {
   align-items: center;
   gap: 12px;
   margin-bottom: 12px;
-  cursor: pointer;
 }
 
 .avatar {
