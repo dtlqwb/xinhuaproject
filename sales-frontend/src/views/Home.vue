@@ -146,27 +146,40 @@ const handleLogout = () => {
 }
 
 onMounted(() => {
-  // 检查用户信息是否损坏
+  // 检查用户信息是否完整
   const savedUserInfo = localStorage.getItem('userInfo')
-  if (savedUserInfo) {
-    try {
-      const parsed = JSON.parse(savedUserInfo)
-      // 检查名字是否是乱码(包含特殊字符)
-      if (parsed.name && /[à¼ñ,%]/.test(parsed.name)) {
-        console.log('检测到损坏的用户信息,清除缓存')
-        localStorage.removeItem('userInfo')
-        localStorage.removeItem('token')
-        // 跳转到登录页
-        router.push('/login')
-        return
-      }
-    } catch (e) {
-      console.error('用户信息解析失败:', e)
-      localStorage.removeItem('userInfo')
-      localStorage.removeItem('token')
+  const token = localStorage.getItem('token')
+  
+  // 如果没有token或userInfo,说明未登录,跳转登录页
+  if (!token || !savedUserInfo) {
+    router.push('/login')
+    return
+  }
+  
+  try {
+    const parsed = JSON.parse(savedUserInfo)
+    
+    // 检查必要字段是否存在
+    if (!parsed.id || !parsed.name || !parsed.token) {
+      console.log('用户信息不完整,清除缓存')
+      localStorage.clear()
       router.push('/login')
       return
     }
+    
+    // 检查名字是否明显是乱码(包含不可打印字符或特殊符号)
+    const namePattern = /^[\u4e00-\u9fa5a-zA-Z0-9\s\-_.]{1,50}$/
+    if (!namePattern.test(parsed.name)) {
+      console.log('用户名格式异常,清除缓存')
+      localStorage.clear()
+      router.push('/login')
+      return
+    }
+  } catch (e) {
+    console.error('用户信息解析失败:', e)
+    localStorage.clear()
+    router.push('/login')
+    return
   }
   
   loadCustomers()
