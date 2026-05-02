@@ -30,13 +30,68 @@
     <div class="time-info">
       {{ formatTime(customer.createTime) }}
     </div>
+    
+    <!-- 编辑对话框 -->
+    <van-popup v-model:show="editVisible" position="bottom" :style="{ height: '70%' }" round>
+      <div class="edit-dialog">
+        <div class="edit-header">
+          <span class="edit-title">编辑客户信息</span>
+          <van-icon name="cross" size="20" @click="editVisible = false" />
+        </div>
+        
+        <van-form @submit="handleSave">
+          <van-cell-group inset>
+            <van-field
+              v-model="editForm.name"
+              name="name"
+              label="姓名"
+              placeholder="请输入客户姓名"
+            />
+            <van-field
+              v-model="editForm.company"
+              name="company"
+              label="公司"
+              placeholder="请输入公司名称"
+            />
+            <van-field
+              v-model="editForm.position"
+              name="position"
+              label="职位"
+              placeholder="请输入职位"
+            />
+            <van-field
+              v-model="editForm.phone"
+              name="phone"
+              label="电话"
+              placeholder="请输入手机号"
+              type="tel"
+            />
+            <van-field
+              v-model="editForm.requirement"
+              name="requirement"
+              label="需求"
+              type="textarea"
+              rows="3"
+              placeholder="请输入客户需求"
+            />
+          </van-cell-group>
+          
+          <div class="edit-actions">
+            <van-button round block type="primary" native-type="submit" :loading="saving">
+              保存
+            </van-button>
+          </div>
+        </van-form>
+      </div>
+    </van-popup>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { showDialog, showSuccessToast, showToast } from 'vant'
+import { ref, reactive } from 'vue'
+import { showSuccessToast, showToast } from 'vant'
 import type { Customer } from '@/api/customer'
+import { updateCustomer } from '@/api/customer'
 
 const props = defineProps<{
   customer: Customer
@@ -55,22 +110,53 @@ const formatTime = (time?: string) => {
   return `${hours}:${minutes}`
 }
 
+// 编辑相关
+const editVisible = ref(false)
+const saving = ref(false)
+const editForm = reactive({
+  name: '',
+  company: '',
+  position: '',
+  phone: '',
+  requirement: ''
+})
+
 // 显示编辑对话框
 const showEditDialog = () => {
   const customer = props.customer
-  
-  showDialog({
-    title: '编辑客户信息',
-    message: `当前信息：\n姓名：${customer.name || '未填写'}\n公司：${customer.company || '未填写'}\n职位：${customer.position || '未填写'}\n电话：${customer.phone || '未填写'}\n需求：${customer.requirement || '未填写'}`,
-    showCancelButton: true,
-    confirmButtonText: '保存',
-    cancelButtonText: '取消'
-  }).then(() => {
-    // 这里可以实现编辑功能
-    showToast('编辑功能开发中')
-  }).catch(() => {
-    // 用户取消
-  })
+  editForm.name = customer.name || ''
+  editForm.company = customer.company || ''
+  editForm.position = customer.position || ''
+  editForm.phone = customer.phone || ''
+  editForm.requirement = customer.requirement || ''
+  editVisible.value = true
+}
+
+// 保存编辑
+const handleSave = async () => {
+  try {
+    saving.value = true
+    
+    // 构造Customer对象
+    const customerData: Customer = {
+      id: props.customer.id,
+      name: editForm.name,
+      company: editForm.company,
+      position: editForm.position,
+      phone: editForm.phone,
+      requirement: editForm.requirement
+    }
+    
+    await updateCustomer(customerData)
+    
+    showSuccessToast('保存成功')
+    editVisible.value = false
+    emit('customer-updated')
+  } catch (error: any) {
+    showToast(error.message || '保存失败')
+  } finally {
+    saving.value = false
+  }
 }
 </script>
 
@@ -212,5 +298,30 @@ const showEditDialog = () => {
   font-size: 11px;
   color: #ccc;
   text-align: right;
+}
+
+.edit-dialog {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.edit-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.edit-title {
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+}
+
+.edit-actions {
+  padding: 16px;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom));
 }
 </style>

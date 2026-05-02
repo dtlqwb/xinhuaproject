@@ -31,6 +31,7 @@
           v-for="customer in customerStore.todayCustomers"
           :key="customer.id"
           :customer="customer"
+          @customer-updated="handleCustomerAdded"
         />
         
         <!-- 空状态 -->
@@ -207,7 +208,7 @@ onMounted(() => {
   flex: 1;
   overflow-y: auto;
   padding: 16px;
-  padding-bottom: 280px; /* 增加底部空间,避免被输入框遮挡 */
+  padding-bottom: 350px; /* 增加底部空间,确保可以完全滚动出来 */
 }
 
 .loading-state {
