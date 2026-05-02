@@ -146,6 +146,29 @@ const handleLogout = () => {
 }
 
 onMounted(() => {
+  // 检查用户信息是否损坏
+  const savedUserInfo = localStorage.getItem('userInfo')
+  if (savedUserInfo) {
+    try {
+      const parsed = JSON.parse(savedUserInfo)
+      // 检查名字是否是乱码(包含特殊字符)
+      if (parsed.name && /[à¼ñ,%]/.test(parsed.name)) {
+        console.log('检测到损坏的用户信息,清除缓存')
+        localStorage.removeItem('userInfo')
+        localStorage.removeItem('token')
+        // 跳转到登录页
+        router.push('/login')
+        return
+      }
+    } catch (e) {
+      console.error('用户信息解析失败:', e)
+      localStorage.removeItem('userInfo')
+      localStorage.removeItem('token')
+      router.push('/login')
+      return
+    }
+  }
+  
   loadCustomers()
 })
 </script>
