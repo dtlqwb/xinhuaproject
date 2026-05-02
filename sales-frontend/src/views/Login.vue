@@ -47,7 +47,7 @@ const phone = ref('13800138000')
 const password = ref('123456')
 const loading = ref(false)
 
-const onSubmit = async () => {
+const onSubmit = async (values: any) => {
   loading.value = true
   
   try {
@@ -67,10 +67,11 @@ const onSubmit = async () => {
     userStore.setUserInfo(result)
     showToast('登录成功')
     
-    // 延迟跳转,确保Store已更新
+    // 使用window.location直接跳转,避免路由守卫问题
     setTimeout(() => {
-      router.push('/')
-    }, 300)
+      console.log('准备跳转到主页')
+      window.location.href = '/'
+    }, 500)
   } catch (error: any) {
     console.error('登录失败:', error)
     showToast(error.message || '登录失败')
