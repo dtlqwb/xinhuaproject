@@ -280,8 +280,8 @@ const generatePlan = async (customer: Customer) => {
     try {
       showToast({ type: 'loading', message: 'AI正在生成中...' })
       
-      const result = await request.post('/admin/marketing-plan/generate', {
-        customerId: customer.id
+      const result = await request.post('/admin/plans/generate', null, {
+        params: { customerId: customer.id }
       })
       
       showSuccessToast('营销方案生成成功')
