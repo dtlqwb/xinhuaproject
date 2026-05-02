@@ -2,8 +2,7 @@ name: Deploy to Server
 
 on:
   push:
-    branches: [master]
-  workflow_dispatch:  # 允许手动触发
+    branches: [ master ]
 
 jobs:
   deploy:
@@ -12,54 +11,35 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
-    
-    - name: Deploy to server
-      uses: appleboy/ssh-action@v0.1.5
+      
+    - name: Deploy via SSH
+      uses: appleboy/ssh-action@v0.1.8
       with:
         host: ${{ secrets.SERVER_HOST }}
         username: ${{ secrets.SERVER_USERNAME }}
         key: ${{ secrets.SERVER_SSH_KEY }}
+        port: 22
         script: |
-          echo "🚀 开始部署..."
+          cd /home/ubuntu/xinhuaproject
           
-          # 检查目录是否存在且是git仓库
-          if [ -d "xinhuaproject/.git" ]; then
-            echo "[1/4] 项目已存在，更新代码..."
-            cd xinhuaproject
-            git pull origin master
-          else
-            echo "[1/4] 首次部署或目录不存在，克隆项目..."
-            rm -rf xinhuaproject
-            git clone https://github.com/dtlqwb/xinhuaproject.git
-            cd xinhuaproject
-          fi
+          echo "========== 开始自动部署 =========="
           
-          echo "[2/5] 编译后端Java代码..."
-          cd xinhuaproject/backend
-          mvn clean package -Dmaven.test.skip=true
-          cd ..
+          # 拉取最新代码
+          git pull origin master
           
-          echo "[3/5] 停止旧服务..."
-          docker-compose down || true
-          
-          echo "[4/5] 构建并启动服务..."
+          # 重新构建后端
           docker-compose build --no-cache backend
-          docker-compose up -d
           
-          echo "[5/5] 等待服务启动..."
-          sleep 10
+          # 重启后端服务
+          docker-compose up -d backend
           
-          echo ""
-          echo "========================================"
-          echo "  ✅ 部署完成！"
-          echo "========================================"
-          echo ""
-          echo "服务状态："
-          docker-compose ps
-          echo ""
-          echo "查看日志："
-          echo "  docker-compose logs -f backend"
-          echo ""
-          echo "访问地址："
-          echo "  销售端: http://${{ secrets.SERVER_HOST }}:80"
-          echo "  管理端: http://${{ secrets.SERVER_HOST }}:81"
+          # 等待启动
+          sleep 15
+          
+          # 检查服务状态
+          docker logs sales-backend --tail 10 | grep "Started"
+          
+          echo "========================================="
+          echo "✅ 自动部署完成!"
+          echo "版本: $(git log --oneline -1)"
+          echo "========================================="
