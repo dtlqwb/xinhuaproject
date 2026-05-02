@@ -32,5 +32,19 @@ logs/
 *.temp
 .cache/
 
+# 临时调试脚本(避免再次产生)
+*.py
+!deploy-backend.ps1
+fix-*.sh
+diagnose-*.ps1
+check-*.py
+
+# 历史文档(避免再次产生)
+*_GUIDE.md
+*_REPORT.md
+*_CHECKLIST.md
+功能*.md
+测试*.md
+
 # Docker
 docker-compose.override.yml

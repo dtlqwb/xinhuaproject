@@ -76,28 +76,48 @@ npm run dev
 
 ```
 xinhuaproject/
-├── backend/                    # Java后端
-│   ├── src/main/java/com/sales/customer/
-│   │   ├── controller/        # 控制器
-│   │   ├── service/           # 业务逻辑
-│   │   ├── mapper/            # 数据访问
-│   │   ├── entity/            # 实体类
-│   │   ├── dto/               # 数据传输对象
-│   │   ├── config/            # 配置类
-│   │   └── util/              # 工具类
-│   └── src/main/resources/
-│       ├── application.yml    # 配置文件
-│       └── schema.sql         # 数据库脚本
-├── sales-frontend/            # 销售端H5
+├── .github/                    # GitHub Actions配置
+│   ── workflows/
+│       └── deploy.yml         # 自动化部署工作流
+├── admin-frontend/            # 管理端前端(Vue 3 + Vant)
 │   ├── src/
-│   │   ├── views/             # 页面
-│   │   ├── components/        # 组件
-│   │   ├── stores/            # 状态管理
+│   │   ├── views/             # 页面组件
+│   │   ├── components/        # 公共组件
+│   │   ├── stores/            # Pinia状态管理
 │   │   ├── api/               # API接口
 │   │   └── utils/             # 工具函数
 │   └── package.json
-└── README.md
+├── backend/                    # Java后端(Spring Boot)
+│   ├── src/main/java/com/sales/customer/
+│   │   ├── controller/        # REST API控制器
+│   │   ├── service/           # 业务逻辑层
+│   │   ├── mapper/            # MyBatis数据访问
+│   │   ├── entity/            # 数据库实体
+│   │   ├── dto/               # 数据传输对象
+│   │   ├── config/            # 配置类
+│   │   ── util/              # 工具类
+│   ├── src/main/resources/
+│   │   ├── application.yml    # 应用配置
+│   │   ── schema.sql         # 数据库脚本
+│   ├── Dockerfile             # Docker镜像构建
+│   └── pom.xml                # Maven依赖
+├── sales-frontend/            # 销售端H5(Vue 3 + Vant)
+│   ├── src/
+│   │   ├── views/             # 页面组件
+│   │   ├── components/        # 公共组件
+│   │   ├── stores/            # Pinia状态管理
+│   │   └── api/               # API接口
+│   └── package.json
+├── sales-mini-program/        # 微信小程序(Taro框架)
+── docs-archive/              # 历史文件归档(临时脚本、过时文档)
+├── .env.example               # 环境变量示例
+├── .gitignore                 # Git忽略配置
+├── deploy-backend.ps1         # 后端编译部署脚本
+├── docker-compose.yml         # Docker容器编排
+└── README.md                  # 项目文档
 ```
+
+## 部署方式
 
 ## API接口
 
