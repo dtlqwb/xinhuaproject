@@ -32,9 +32,29 @@
           @click="showDetail(customer)"
         >
           <template #right-icon>
-            <van-tag :type="getStatusType(customer.status)">
-              {{ getStatusText(customer.status) }}
-            </van-tag>
+            <div class="action-buttons">
+              <van-tag :type="getStatusType(customer.status)" class="status-tag">
+                {{ getStatusText(customer.status) }}
+              </van-tag>
+              <van-icon 
+                name="edit" 
+                size="18" 
+                color="#667eea" 
+                @click.stop="showEditDialog(customer)" 
+              />
+              <van-icon 
+                name="bulb-o" 
+                size="18" 
+                color="#ff9800" 
+                @click.stop="generatePlan(customer)" 
+              />
+              <van-icon 
+                name="delete" 
+                size="18" 
+                color="#ee0a24" 
+                @click.stop="confirmDelete(customer)" 
+              />
+            </div>
           </template>
         </van-cell>
       </van-cell-group>
@@ -43,7 +63,7 @@
     </div>
     
     <!-- 客户详情弹窗 -->
-    <van-popup v-model:show="detailVisible" position="bottom" round>
+    <van-popup v-model:show="detailVisible" position="bottom" round :style="{ height: '60%' }">
       <div v-if="currentCustomer" class="detail-content">
         <div class="detail-header">
           <h3>{{ currentCustomer.name || '未命名客户' }}</h3>
@@ -66,11 +86,57 @@
         </div>
       </div>
     </van-popup>
+    
+    <!-- 编辑客户弹窗 -->
+    <van-popup v-model:show="editVisible" position="bottom" round :style="{ height: '75%' }">
+      <div class="edit-content">
+        <div class="edit-header">
+          <h3>编辑客户信息</h3>
+          <van-icon name="cross" @click="editVisible = false" />
+        </div>
+        <van-form @submit="handleSave">
+          <van-cell-group inset>
+            <van-field v-model="editForm.name" name="name" label="姓名" placeholder="请输入姓名" />
+            <van-field v-model="editForm.company" name="company" label="公司" placeholder="请输入公司" />
+            <van-field v-model="editForm.position" name="position" label="职位" placeholder="请输入职位" />
+            <van-field v-model="editForm.phone" name="phone" label="手机" placeholder="请输入手机号" type="tel" />
+            <van-field v-model="editForm.industry" name="industry" label="行业" placeholder="请输入行业" />
+            <van-field 
+              v-model="editForm.requirement" 
+              name="requirement" 
+              label="需求" 
+              type="textarea" 
+              rows="3" 
+              placeholder="请输入客户需求" 
+            />
+            <van-field name="status" label="状态">
+              <template #input>
+                <van-radio-group v-model="editForm.status" direction="horizontal">
+                  <van-radio name="NEW">新录入</van-radio>
+                  <van-radio name="FOLLOW_UP">跟进中</van-radio>
+                  <van-radio name="CONVERTED">已转化</van-radio>
+                  <van-radio name="LOST">已流失</van-radio>
+                </van-radio-group>
+              </template>
+            </van-field>
+          </van-cell-group>
+          <div class="edit-actions">
+            <van-button round block type="primary" native-type="submit" :loading="saving">
+              保存
+            </van-button>
+            <van-button round block plain type="default" style="margin-top: 8px" @click="editVisible = false">
+              取消
+            </van-button>
+          </div>
+        </van-form>
+      </div>
+    </van-popup>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, reactive } from 'vue'
+import { showToast, showSuccessToast, showConfirmDialog } from 'vant'
 import request from '@/utils/request'
 
 interface Customer {
@@ -94,6 +160,20 @@ const searchText = ref('')
 const customers = ref<Customer[]>([])
 const detailVisible = ref(false)
 const currentCustomer = ref<Customer | null>(null)
+
+// 编辑相关
+const editVisible = ref(false)
+const saving = ref(false)
+const editForm = reactive({
+  id: 0,
+  name: '',
+  company: '',
+  position: '',
+  phone: '',
+  industry: '',
+  requirement: '',
+  status: 'NEW'
+})
 
 // 加载客户列表
 const loadCustomers = async () => {
@@ -148,6 +228,93 @@ const exportCustomers = () => {
 const showDetail = (customer: Customer) => {
   currentCustomer.value = customer
   detailVisible.value = true
+}
+
+// 显示编辑对话框
+const showEditDialog = (customer: Customer) => {
+  editForm.id = customer.id
+  editForm.name = customer.name || ''
+  editForm.company = customer.company || ''
+  editForm.position = customer.position || ''
+  editForm.phone = customer.phone || ''
+  editForm.industry = customer.industry || ''
+  editForm.requirement = customer.requirement || ''
+  editForm.status = customer.status || 'NEW'
+  editVisible.value = true
+}
+
+// 保存编辑
+const handleSave = async () => {
+  try {
+    saving.value = true
+    
+    await request.put(`/admin/customer/${editForm.id}`, {
+      name: editForm.name,
+      company: editForm.company,
+      position: editForm.position,
+      phone: editForm.phone,
+      industry: editForm.industry,
+      requirement: editForm.requirement,
+      status: editForm.status
+    })
+    
+    showSuccessToast('保存成功')
+    editVisible.value = false
+    loadCustomers() // 刷新列表
+  } catch (error: any) {
+    console.error('保存失败:', error)
+    showToast(error.message || '保存失败')
+  } finally {
+    saving.value = false
+  }
+}
+
+// 生成营销方案
+const generatePlan = async (customer: Customer) => {
+  showConfirmDialog({
+    title: '生成营销方案',
+    message: `是否为客户 "${customer.name || '未命名'}" 生成AI营销方案？`,
+    confirmButtonText: '生成',
+    cancelButtonText: '取消'
+  }).then(async () => {
+    try {
+      showToast({ type: 'loading', message: 'AI正在生成中...' })
+      
+      const result = await request.post('/admin/marketing-plan/generate', {
+        customerId: customer.id
+      })
+      
+      showSuccessToast('营销方案生成成功')
+      // 可以跳转到营销方案页面查看详情
+    } catch (error: any) {
+      console.error('生成失败:', error)
+      showToast(error.message || '生成失败')
+    }
+  }).catch(() => {
+    // 用户取消
+  })
+}
+
+// 确认删除
+const confirmDelete = (customer: Customer) => {
+  showConfirmDialog({
+    title: '确认删除',
+    message: `确定要删除客户 "${customer.name || '未命名'}" 吗？`,
+    confirmButtonText: '删除',
+    cancelButtonText: '取消',
+    confirmButtonColor: '#ee0a24'
+  }).then(async () => {
+    try {
+      await request.delete(`/admin/customer/${customer.id}`)
+      showSuccessToast('删除成功')
+      loadCustomers() // 刷新列表
+    } catch (error: any) {
+      console.error('删除失败:', error)
+      showToast(error.message || '删除失败')
+    }
+  }).catch(() => {
+    // 用户取消
+  })
 }
 
 // 状态文本
@@ -207,6 +374,16 @@ loadCustomers()
   padding: 8px;
 }
 
+.action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-tag {
+  margin-right: 8px;
+}
+
 .detail-content {
   padding: 20px 16px;
 }
@@ -223,6 +400,30 @@ loadCustomers()
   font-size: 18px;
 }
 
+.edit-content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.edit-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.edit-header h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.edit-actions {
+  padding: 16px;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom));
+}
+
 .attachment-info {
   margin-top: 16px;
   padding: 12px;
@@ -234,5 +435,3 @@ loadCustomers()
   gap: 8px;
 }
 </style>
-<script setup lang="ts"></script>
-<style scoped>.page { min-height: 100vh; background: #f5f5f5; }</style>

@@ -93,4 +93,31 @@ public class AdminController {
             return Result.error(e.getMessage());
         }
     }
+    
+    /**
+     * 更新客户信息（管理端）
+     */
+    @PutMapping("/customer/{id}")
+    public Result<Boolean> updateCustomer(@PathVariable Long id, @RequestBody Customer customer) {
+        try {
+            customer.setId(id);
+            boolean success = customerService.updateById(customer);
+            return Result.success(success);
+        } catch (Exception e) {
+            return Result.error(e.getMessage());
+        }
+    }
+    
+    /**
+     * 删除客户（管理端）
+     */
+    @DeleteMapping("/customer/{id}")
+    public Result<Boolean> deleteCustomer(@PathVariable Long id) {
+        try {
+            boolean success = customerService.removeById(id);
+            return Result.success(success);
+        } catch (Exception e) {
+            return Result.error(e.getMessage());
+        }
+    }
 }
