@@ -145,6 +145,7 @@ onMounted(() => {
   height: 100vh;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
   background: #f5f5f5;
 }
 
@@ -204,9 +205,24 @@ onMounted(() => {
   cursor: pointer;
 }
 
-.customer-list {
+/* van-pull-refresh 需要固定高度 */
+:deep(.van-pull-refresh) {
   flex: 1;
+  overflow: hidden;
+  height: 0; /* 关键:配合flex:1使用 */
+}
+
+/* van-pull-refresh 需要固定高度 */
+:deep(.van-pull-refresh) {
+  flex: 1;
+  overflow: hidden;
+  height: 0; /* 关键:配合flex:1使用 */
+}
+
+.customer-list {
+  height: 100%;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch; /* iOS平滑滚动 */
   padding: 16px;
   padding-bottom: 350px; /* 增加底部空间,确保可以完全滚动出来 */
 }

@@ -39,7 +39,7 @@
           <van-icon name="cross" size="20" @click="editVisible = false" />
         </div>
         
-        <van-form @submit="handleSave">
+        <van-form @submit="handleSave" @failed="onFailed">
           <van-cell-group inset>
             <van-field
               v-model="editForm.name"
@@ -79,6 +79,9 @@
           <div class="edit-actions">
             <van-button round block type="primary" native-type="submit" :loading="saving">
               保存
+            </van-button>
+            <van-button round block plain type="default" style="margin-top: 8px" @click="editVisible = false">
+              取消
             </van-button>
           </div>
         </van-form>
@@ -133,7 +136,9 @@ const showEditDialog = () => {
 }
 
 // 保存编辑
-const handleSave = async () => {
+const handleSave = async (values: any) => {
+  console.log('保存编辑:', values)
+  
   try {
     saving.value = true
     
@@ -147,16 +152,25 @@ const handleSave = async () => {
       requirement: editForm.requirement
     }
     
-    await updateCustomer(customerData)
+    console.log('提交数据:', customerData)
+    const result = await updateCustomer(customerData)
+    console.log('保存结果:', result)
     
     showSuccessToast('保存成功')
     editVisible.value = false
     emit('customer-updated')
   } catch (error: any) {
+    console.error('保存失败:', error)
     showToast(error.message || '保存失败')
   } finally {
     saving.value = false
   }
+}
+
+// 表单验证失败
+const onFailed = (errorInfo: any) => {
+  console.log('表单验证失败:', errorInfo)
+  showToast('请检查输入内容')
 }
 </script>
 
