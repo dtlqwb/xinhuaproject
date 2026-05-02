@@ -295,6 +295,7 @@ const handleCancel = () => {
   height: 100%;
   display: flex;
   flex-direction: column;
+  touch-action: none; /* 防止触摸事件传递 */
 }
 
 .edit-header {
@@ -303,6 +304,7 @@ const handleCancel = () => {
   align-items: center;
   padding: 16px;
   border-bottom: 1px solid #f0f0f0;
+  flex-shrink: 0; /* 防止头部被压缩 */
 }
 
 .edit-title {
@@ -311,8 +313,16 @@ const handleCancel = () => {
   color: #333;
 }
 
+.edit-form {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 20px;
+}
+
 .edit-actions {
   padding: 16px;
   padding-bottom: calc(16px + env(safe-area-inset-bottom));
+  flex-shrink: 0; /* 防止按钮区域被压缩 */
 }
 </style>
