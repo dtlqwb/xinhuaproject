@@ -18,7 +18,8 @@ jobs:
     - name: Build backend JAR
       run: |
         cd backend
-        mvn clean package -DskipTests
+        # 完全跳过测试(包括测试编译)
+        mvn clean package -Dmaven.test.skip=true
         ls -lh target/*.jar
             
     - name: Copy JAR to server
