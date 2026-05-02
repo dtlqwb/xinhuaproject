@@ -5,7 +5,7 @@
       <div class="left-section">
         <div class="title">今日客户录入</div>
         <div class="user-name" v-if="customerStore.userInfo">
-          👤 {{ customerStore.userInfo.name }}
+          <span v-text="'👤 ' + customerStore.userInfo.name"></span>
         </div>
       </div>
       <div class="right-section">
@@ -207,7 +207,7 @@ onMounted(() => {
   flex: 1;
   overflow-y: auto;
   padding: 16px;
-  padding-bottom: 100px;
+  padding-bottom: 280px; /* 增加底部空间,避免被输入框遮挡 */
 }
 
 .loading-state {

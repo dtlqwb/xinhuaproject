@@ -1,7 +1,7 @@
 <template>
-  <div class="customer-card" @click="showDetail">
+  <div class="customer-card">
     <div class="card-header">
-      <div class="avatar">👤</div>
+      <div class="avatar"></div>
       <div class="info">
         <div class="name-row">
           <span class="name">{{ customer.name || '未命名客户' }}</span>
@@ -9,6 +9,7 @@
         </div>
         <div v-if="customer.company" class="company">{{ customer.company }}</div>
       </div>
+      <van-icon name="edit" size="18" color="#667eea" @click="showEditDialog" />
     </div>
     
     <div v-if="customer.phone" class="contact-info">
@@ -33,11 +34,16 @@
 </template>
 
 <script setup lang="ts">
-import { showDialog } from 'vant'
+import { ref } from 'vue'
+import { showDialog, showSuccessToast, showToast } from 'vant'
 import type { Customer } from '@/api/customer'
 
-defineProps<{
+const props = defineProps<{
   customer: Customer
+}>()
+
+const emit = defineEmits<{
+  (e: 'customer-updated'): void
 }>()
 
 // 格式化时间
@@ -49,27 +55,21 @@ const formatTime = (time?: string) => {
   return `${hours}:${minutes}`
 }
 
-const showDetail = () => {
-  const props = defineProps<{ customer: Customer }>()
+// 显示编辑对话框
+const showEditDialog = () => {
   const customer = props.customer
   
-  let content = `姓名：${customer.name || '未填写'}\n`
-  content += `公司：${customer.company || '未填写'}\n`
-  content += `职位：${customer.position || '未填写'}\n`
-  content += `电话：${customer.phone || '未填写'}\n`
-  
-  if (customer.requirement) {
-    content += `\n需求：${customer.requirement}`
-  }
-  
-  if (customer.content) {
-    content += `\n\n原始内容：${customer.content}`
-  }
-  
   showDialog({
-    title: '客户详情',
-    message: content,
-    confirmButtonText: '关闭'
+    title: '编辑客户信息',
+    message: `当前信息：\n姓名：${customer.name || '未填写'}\n公司：${customer.company || '未填写'}\n职位：${customer.position || '未填写'}\n电话：${customer.phone || '未填写'}\n需求：${customer.requirement || '未填写'}`,
+    showCancelButton: true,
+    confirmButtonText: '保存',
+    cancelButtonText: '取消'
+  }).then(() => {
+    // 这里可以实现编辑功能
+    showToast('编辑功能开发中')
+  }).catch(() => {
+    // 用户取消
   })
 }
 </script>
@@ -81,10 +81,10 @@ const showDetail = () => {
   padding: 16px;
   margin-bottom: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  cursor: pointer;
   transition: all 0.3s ease;
   animation: slideIn 0.3s ease;
   border-left: 3px solid #667eea;
+  cursor: default;
 }
 
 @keyframes slideIn {
@@ -108,6 +108,7 @@ const showDetail = () => {
   align-items: center;
   gap: 12px;
   margin-bottom: 12px;
+  cursor: pointer;
 }
 
 .avatar {
