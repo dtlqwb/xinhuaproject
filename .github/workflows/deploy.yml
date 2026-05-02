@@ -23,23 +23,42 @@ jobs:
           cd /home/ubuntu/xinhuaproject
           
           echo "========== 开始自动部署 =========="
+          echo "当前版本: $(git log --oneline -1)"
           
-          # 拉取最新代码
-          git pull origin master
+          # 确保代码是最新的
+          git fetch origin master
+          git reset --hard origin/master
+          
+          echo "更新后版本: $(git log --oneline -1)"
           
           # 重新构建后端
+          echo "正在构建Docker镜像..."
           docker-compose build --no-cache backend
           
+          if [ $? -ne 0 ]; then
+            echo "❌ Docker构建失败!"
+            exit 1
+          fi
+          
           # 重启后端服务
+          echo "正在启动服务..."
           docker-compose up -d backend
           
           # 等待启动
           sleep 15
           
           # 检查服务状态
+          echo "服务状态:"
+          docker ps | grep backend
+          
+          echo "后端日志:"
           docker logs sales-backend --tail 10 | grep "Started"
+          
+          if [ $? -ne 0 ]; then
+            echo "⚠️  后端启动可能有问题,请检查日志"
+          fi
           
           echo "========================================="
           echo "✅ 自动部署完成!"
-          echo "版本: $(git log --oneline -1)"
+          echo "最终版本: $(git log --oneline -1)"
           echo "========================================="
