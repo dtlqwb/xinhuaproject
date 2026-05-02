@@ -15,47 +15,24 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
       
-    - name: Build backend Docker image
+    - name: Build backend JAR
       run: |
         cd backend
-        # 编译Java代码
         mvn clean package -DskipTests
-        cd ..
-        # 构建Docker镜像
-        docker build -t xinhuaproject-backend:latest -f backend/Dockerfile .
-        # 保存镜像为文件
-        docker save xinhuaproject-backend:latest -o /tmp/backend.tar
-        
-    - name: Deploy to server via SSH
-      uses: appleboy/ssh-action@v0.1.8
-      with:
-        host: ${{ secrets.SERVER_HOST }}
-        username: ${{ secrets.SERVER_USERNAME }}
-        key: ${{ secrets.SERVER_SSH_KEY }}
-        port: 22
-        script: |
-          echo "========== 开始部署 =========="
-          cd /home/ubuntu/xinhuaproject
-          
-          # 停止旧容器
-          docker-compose stop backend || true
-          
-          # 删除旧镜像
-          docker rmi xinhuaproject-backend:latest 2>/dev/null || true
-          
-          echo "✅ 旧容器已停止"
-          
-    - name: Copy Docker image to server
+        ls -lh target/*.jar
+            
+    - name: Copy JAR to server
       uses: appleboy/scp-action@v0.1.7
       with:
         host: ${{ secrets.SERVER_HOST }}
         username: ${{ secrets.SERVER_USERNAME }}
         key: ${{ secrets.SERVER_SSH_KEY }}
         port: 22
-        source: "/tmp/backend.tar"
-        target: "/tmp/"
-        
-    - name: Load image and restart service
+        source: "backend/target/*.jar"
+        target: "/home/ubuntu/xinhuaproject/backend/target/"
+        strip_components: 2
+            
+    - name: Build and restart on server
       uses: appleboy/ssh-action@v0.1.8
       with:
         host: ${{ secrets.SERVER_HOST }}
@@ -64,27 +41,41 @@ jobs:
         port: 22
         script: |
           cd /home/ubuntu/xinhuaproject
-          
-          echo "========== 加载Docker镜像 =========="
-          # 加载Docker镜像
-          docker load -i /tmp/backend.tar
-          
+              
+          echo "========== 开始部署 =========="
+              
+          # 停止旧容器
+          docker-compose stop backend || true
+              
+          # 删除旧镜像
+          docker rmi xinhuaproject-backend:latest 2>/dev/null || true
+              
+          # 检查jar是否上传成功
+          echo "检查jar文件:"
+          ls -lh backend/target/*.jar
+              
+          # 重新构建Docker镜像(使用新的jar)
+          echo "正在构建Docker镜像..."
+          docker-compose build --no-cache backend
+              
+          if [ $? -ne 0 ]; then
+            echo "❌ Docker构建失败!"
+            exit 1
+          fi
+              
           # 启动服务
           docker-compose up -d backend
-          
+              
           # 等待启动
           sleep 15
-          
+              
           # 检查服务状态
           echo "========== 服务状态 =========="
           docker ps | grep backend
-          
+              
           echo "========== 后端日志 =========="
-          docker logs sales-backend --tail 10 | grep "Started" || echo "⚠️ 未找到Started日志"
-          
-          # 清理临时文件
-          rm -f /tmp/backend.tar
-          
+          docker logs sales-backend --tail 10 | grep "Started" || echo "️ 未找到Started日志"
+              
           echo "========================================="
           echo "✅ 自动部署完成!"
           echo "========================================="
