@@ -54,9 +54,15 @@ public class DailyReportController {
             java.time.LocalDateTime endOfDay = localDate.atTime(23, 59, 59);
             
             // 查询当天所有客户信息(使用日期范围查询,避免时区问题)
+            // 注意:需要同时查询create_time在当天或update_time在当天的客户
             QueryWrapper<Customer> customerWrapper = new QueryWrapper<Customer>()
-                .ge("create_time", startOfDay)
-                .le("create_time", endOfDay)
+                .and(wrapper -> wrapper
+                    .ge("create_time", startOfDay)
+                    .le("create_time", endOfDay)
+                    .or()
+                    .ge("update_time", startOfDay)
+                    .le("update_time", endOfDay)
+                )
                 .eq("deleted", 0)
                 .orderByDesc("create_time");
             List<Customer> customers = customerService.list(customerWrapper);
