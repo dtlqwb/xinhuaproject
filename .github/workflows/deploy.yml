@@ -46,10 +46,10 @@ jobs:
           echo "========== 开始部署 =========="
               
           # 停止旧容器
-          docker-compose stop backend || true
+          docker-compose stop backend admin-frontend || true
               
           # 删除旧镜像
-          docker rmi xinhuaproject-backend:latest 2>/dev/null || true
+          docker rmi xinhuaproject-backend:latest xinhuaproject-admin-frontend:latest 2>/dev/null || true
               
           # 检查jar是否上传成功
           echo "检查jar文件:"
@@ -57,7 +57,7 @@ jobs:
               
           # 重新构建Docker镜像(使用新的jar)
           echo "正在构建Docker镜像..."
-          docker-compose build --no-cache backend
+          docker-compose build --no-cache backend admin-frontend
               
           if [ $? -ne 0 ]; then
             echo "❌ Docker构建失败!"
@@ -65,17 +65,20 @@ jobs:
           fi
               
           # 启动服务
-          docker-compose up -d backend
+          docker-compose up -d backend admin-frontend
               
           # 等待启动
           sleep 15
               
           # 检查服务状态
           echo "========== 服务状态 =========="
-          docker ps | grep backend
+          docker ps | grep -E "backend|admin"
               
           echo "========== 后端日志 =========="
           docker logs sales-backend --tail 10 | grep "Started" || echo "️ 未找到Started日志"
+          
+          echo "========== 前端状态 =========="
+          docker logs admin-frontend --tail 5
               
           echo "========================================="
           echo "✅ 自动部署完成!"

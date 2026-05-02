@@ -48,3 +48,6 @@ check-*.py
 
 # Docker
 docker-compose.override.yml
+
+# 归档目录(不部署到服务器)
+docs-archive/
