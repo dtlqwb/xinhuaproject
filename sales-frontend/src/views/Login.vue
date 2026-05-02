@@ -51,15 +51,28 @@ const onSubmit = async () => {
   loading.value = true
   
   try {
+    console.log('开始登录:', { phone: phone.value })
+    
     const result = await login({
       phone: phone.value,
       password: password.value
     })
     
+    console.log('登录成功:', result)
+    
+    // 清除旧的用户信息,确保使用新数据
+    localStorage.removeItem('userInfo')
+    localStorage.removeItem('token')
+    
     userStore.setUserInfo(result)
     showToast('登录成功')
-    router.push('/')
+    
+    // 延迟跳转,确保Store已更新
+    setTimeout(() => {
+      router.push('/')
+    }, 300)
   } catch (error: any) {
+    console.error('登录失败:', error)
     showToast(error.message || '登录失败')
   } finally {
     loading.value = false
