@@ -4,8 +4,10 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.sales.customer.common.Result;
 import com.sales.customer.entity.Customer;
 import com.sales.customer.entity.DailyReport;
+import com.sales.customer.entity.SalesPerson;
 import com.sales.customer.service.CustomerService;
 import com.sales.customer.service.DailyReportService;
+import com.sales.customer.service.SalesPersonService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -26,6 +28,7 @@ public class DailyReportController {
     private final DailyReportService dailyReportService;
     private final CustomerService customerService;
     private final com.sales.customer.service.AiService aiService;
+    private final SalesPersonService salesPersonService;
     
     /**
      * 获取所有日报列表
@@ -106,7 +109,12 @@ public class DailyReportController {
             prompt.append("\n请用简洁专业的语言,分段输出。");
                     
             // 调用AI生成日报内容
-            String aiResponse = aiService.generateDailyReport(customers, 1L);
+            // 查询第一个销售人员作为默认
+            SalesPerson firstSalesPerson = salesPersonService.list().stream().findFirst().orElse(null);
+            Long defaultSalesId = firstSalesPerson != null ? firstSalesPerson.getId() : 1L;
+            String defaultSalesName = firstSalesPerson != null ? firstSalesPerson.getName() : "系统生成";
+            
+            String aiResponse = aiService.generateDailyReport(customers, defaultSalesId);
             log.info("===== AI响应原始内容开始 =====");
             log.info(aiResponse);
             log.info("===== AI响应原始内容结束 =====");
@@ -118,8 +126,8 @@ public class DailyReportController {
             
             // 创建日报
             DailyReport report = new DailyReport();
-            report.setSalesId(1L);
-            report.setSalesName("系统生成");
+            report.setSalesId(defaultSalesId);
+            report.setSalesName(defaultSalesName);
             report.setReportDate(java.time.LocalDate.parse(date));
             report.setTodayCustomers(totalCount);
             report.setFollowUpCustomers((int)followedCount);
