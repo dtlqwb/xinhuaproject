@@ -181,7 +181,7 @@ interface Report {
 const activeTab = ref(2) // 日报页面索引为2
 const reports = ref<Report[]>([])
 const loading = ref(false)
-const finished = ref(false)
+const finished = ref(true) // 初始为true,避免空白
 const refreshing = ref(false)
 const searchKeyword = ref('')
 const showDetail = ref(false)

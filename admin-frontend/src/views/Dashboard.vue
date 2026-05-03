@@ -7,19 +7,19 @@
     </van-nav-bar>
     
     <div class="stats-grid">
-      <div class="stat-card" @click="$router.push('/customers')">
+      <div class="stat-card" @click="navigateTo('/customers')">
         <div class="stat-value">{{ stats.totalCustomers }}</div>
         <div class="stat-label">总客户数</div>
       </div>
-      <div class="stat-card" @click="$router.push('/customers')">
+      <div class="stat-card" @click="navigateTo('/customers')">
         <div class="stat-value">{{ stats.todayCustomers }}</div>
         <div class="stat-label">今日新增</div>
       </div>
-      <div class="stat-card" @click="$router.push('/reports')">
+      <div class="stat-card" @click="navigateTo('/reports')">
         <div class="stat-value">{{ stats.totalReports }}</div>
         <div class="stat-label">日报总数</div>
       </div>
-      <div class="stat-card" @click="$router.push('/plans')">
+      <div class="stat-card" @click="navigateTo('/plans')">
         <div class="stat-value">{{ stats.pendingPlans }}</div>
         <div class="stat-label">待执行方案</div>
       </div>
@@ -58,6 +58,11 @@ const stats = ref<DashboardStats>({
 })
 
 const loading = ref(false)
+
+// 路由跳转函数
+const navigateTo = (path: string) => {
+  router.push(path)
+}
 
 onMounted(() => {
   loadStats()

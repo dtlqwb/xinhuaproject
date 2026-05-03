@@ -249,7 +249,7 @@ interface Plan {
 
 const plans = ref<Plan[]>([])
 const loading = ref(false)
-const finished = ref(false)
+const finished = ref(true) // 初始为true,避免空白
 const refreshing = ref(false)
 const searchKeyword = ref('')
 const statusFilter = ref('')
