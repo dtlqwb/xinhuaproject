@@ -14,20 +14,21 @@
     <!-- 日报列表 -->
     <div class="report-list" v-loading="loading">
       <van-cell-group v-if="reports.length > 0">
-      <van-cell
-        v-for="report in reports"
-        :key="report.id"
-        :title="`${report.salesName} - ${report.reportDate}`"
-        :label="getStatusText(report.status)"
-        :value="report.todayCustomers + '个客户'"
-        is-link
-        @click="showReportDetail(report)"
-      >
-        <template #icon>
-          <van-tag :type="getStatusType(report.status)" style="margin-right: 8px">
-            {{ getStatusText(report.status) }}
-          </van-tag>
-        </template>
+        <van-cell
+          v-for="report in reports"
+          :key="report.id"
+          :title="`${report.salesName} - ${report.reportDate}`"
+          :label="getStatusText(report.status)"
+          :value="report.todayCustomers + '个客户'"
+          is-link
+          @click="showReportDetail(report)"
+        >
+          <template #icon>
+            <van-tag :type="getStatusType(report.status)" style="margin-right: 8px">
+              {{ getStatusText(report.status) }}
+            </van-tag>
+          </template>
+        </van-cell>
       </van-cell-group>
       
       <!-- 空状态 -->
