@@ -37,7 +37,7 @@
           is-link
           @click="showReportDetail(report)"
         >
-          <template #icon>
+          <template #extra>
             <van-tag :type="getStatusType(report.status)" style="margin-right: 8px">
               {{ getStatusText(report.status) }}
             </van-tag>
