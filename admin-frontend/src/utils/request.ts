@@ -7,7 +7,7 @@ const API_BASE_URL = '/api'
 
 const request = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000
+  timeout: 30000 // 增加到30秒,适配AI生成接口
 })
 
 request.interceptors.request.use(config => {

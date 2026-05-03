@@ -400,7 +400,8 @@ const generatePlan = async () => {
   
   try {
     const result = await request.post('/admin/plans/generate', null, {
-      params: { customerId: generateCustomerId.value }
+      params: { customerId: generateCustomerId.value },
+      timeout: 120000 // AI生成需要更长时间,设置为2分钟
     })
     
     showToast('方案生成成功')
