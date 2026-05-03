@@ -1,9 +1,9 @@
 import axios from 'axios'
 
-// 生产环境使用服务器IP,开发环境使用代理
-const API_BASE_URL = import.meta.env.PROD 
-  ? 'http://82.156.165.194:8080/api' 
-  : '/api'
+// 统一使用相对路径,由Nginx代理API请求
+// 生产环境: /api → Nginx proxy_pass → backend:8080
+// 开发环境: /api → Vite proxy → localhost:8080
+const API_BASE_URL = '/api'
 
 const request = axios.create({
   baseURL: API_BASE_URL,
