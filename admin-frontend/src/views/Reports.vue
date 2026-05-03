@@ -19,6 +19,12 @@
         finished-text="没有更多了"
         @load="onLoad"
       >
+        <!-- 空状态提示 -->
+        <van-empty
+          v-if="!loading && reports.length === 0"
+          description="暂无日报数据"
+        />
+        
         <van-cell
           v-for="report in reports"
           :key="report.id"
@@ -196,6 +202,8 @@ const loadReports = async () => {
 
 const onLoad = () => {
   // 分页加载逻辑(如果需要)
+  // 由于后端暂未实现分页,直接标记为finished
+  loading.value = false
   finished.value = true
 }
 
