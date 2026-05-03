@@ -6,12 +6,13 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-root123}
       MYSQL_DATABASE: sales_customer_db
+      TZ: Asia/Shanghai
     ports:
       - "3306:3306"
     volumes:
       - mysql-data:/var/lib/mysql
       - ./backend/src/main/resources/schema.sql:/docker-entrypoint-initdb.d/schema.sql
-    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --default-time-zone='+08:00'
 
   backend:
     build: ./backend
@@ -20,12 +21,13 @@ services:
     ports:
       - "8080:8080"
     environment:
-      DB_URL: jdbc:mysql://mysql:3306/sales_customer_db?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+      DB_URL: jdbc:mysql://mysql:3306/sales_customer_db?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&useLegacyDatetimeCode=false&allowPublicKeyRetrieval=true
       DB_USERNAME: root
       DB_PASSWORD: ${DB_PASSWORD:-root123}
       JWT_SECRET: ${JWT_SECRET:-salesCustomerSystemSecretKey2024Production}
       FILE_UPLOAD_PATH: /data/uploads/
       ALIYUN_BAILIAN_API_KEY: ${ALIYUN_BAILIAN_API_KEY}
+      TZ: Asia/Shanghai
     volumes:
       - upload-data:/data/uploads
       - log-data:/data/logs
@@ -40,6 +42,8 @@ services:
     restart: always
     ports:
       - "80:80"
+    environment:
+      TZ: Asia/Shanghai
     depends_on:
       - backend
 
@@ -51,6 +55,8 @@ services:
     restart: always
     ports:
       - "81:80"
+    environment:
+      TZ: Asia/Shanghai
     depends_on:
       - backend
 
