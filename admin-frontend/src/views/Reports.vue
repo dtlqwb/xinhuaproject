@@ -139,7 +139,7 @@
       <van-tabbar-item icon="home-o" to="/dashboard">首页</van-tabbar-item>
       <van-tabbar-item icon="friends-o" to="/customers">客户</van-tabbar-item>
       <van-tabbar-item icon="notes-o" to="/reports">日报</van-tabbar-item>
-      <van-tabbar-item icon="bulb-o" to="/plans">方案</van-tabbar-item>
+      <van-tabbar-item icon="todo-list-o" to="/plans">方案</van-tabbar-item>
     </van-tabbar>
   </div>
 </template>
@@ -193,6 +193,7 @@ onMounted(() => {
 })
 
 const loadReports = async () => {
+  loading.value = true
   try {
     const data = await request.get('/admin/reports')
     reports.value = data || []
@@ -200,6 +201,8 @@ const loadReports = async () => {
   } catch (error: any) {
     console.error('加载日报失败:', error)
     showToast(error.message || '加载失败')
+  } finally {
+    loading.value = false
   }
 }
 

@@ -274,6 +274,7 @@ onMounted(() => {
 })
 
 const loadPlans = async () => {
+  loading.value = true
   try {
     const data = await request.get('/admin/plans')
     let filtered = data || []
@@ -298,6 +299,8 @@ const loadPlans = async () => {
   } catch (error: any) {
     console.error('加载方案失败:', error)
     showToast(error.message || '加载失败')
+  } finally {
+    loading.value = false
   }
 }
 
