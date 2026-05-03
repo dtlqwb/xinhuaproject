@@ -21,9 +21,6 @@ app.use(pinia)
 app.use(router)
 app.use(Vant)
 
-// 保护全局$,避免第三方库冲突
-;(window as any).$ = undefined
-
 // 挂载时捕获错误
 try {
   app.mount('#app')
