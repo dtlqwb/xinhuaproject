@@ -252,7 +252,7 @@ onMounted(() => {
 })
 </script>
 
-<style scoped lang="scss">
+<style scoped>
 .users-page {
   min-height: 100vh;
   background-color: #f7f8fa;
@@ -268,11 +268,11 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 8px;
-  
-  .user-name {
-    font-size: 16px;
-    font-weight: 500;
-  }
+}
+
+.user-info .user-name {
+  font-size: 16px;
+  font-weight: 500;
 }
 
 .user-detail {
