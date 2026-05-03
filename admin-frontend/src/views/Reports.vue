@@ -12,7 +12,8 @@
     </div>
 
     <!-- 日报列表 -->
-    <div class="report-list" v-if="reports.length > 0">
+    <div class="report-list" v-loading="loading">
+      <van-cell-group v-if="reports.length > 0">
       <van-cell
         v-for="report in reports"
         :key="report.id"
@@ -27,11 +28,11 @@
             {{ getStatusText(report.status) }}
           </van-tag>
         </template>
-      </van-cell>
+      </van-cell-group>
+      
+      <!-- 空状态 -->
+      <van-empty v-else description="暂无日报数据" />
     </div>
-    
-    <!-- 空状态 -->
-    <van-empty v-else description="暂无日报数据" />
 
     <!-- 日报详情弹窗 -->
     <van-popup v-model:show="showDetail" round position="bottom" :style="{ height: '80%' }">
@@ -167,6 +168,7 @@ interface Report {
 }
 
 const reports = ref<Report[]>([])
+const loading = ref(false)
 const searchKeyword = ref('')
 const showDetail = ref(false)
 const showGenerateDialog = ref(false)
@@ -187,12 +189,15 @@ onMounted(() => {
 })
 
 const loadReports = async () => {
+  loading.value = true
   try {
     const data = await request.get('/admin/reports')
     reports.value = data || []
   } catch (error: any) {
     console.error('加载日报失败:', error)
     showToast(error.message || '加载失败')
+  } finally {
+    loading.value = false
   }
 }
 
