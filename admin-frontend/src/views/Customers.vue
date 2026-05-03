@@ -1,6 +1,6 @@
 <template>
   <div class="customers-page">
-    <van-nav-bar title="客户管理" left-arrow @click-left="$router.back()">
+    <van-nav-bar title="客户管理">
       <template #right>
         <van-icon name="down" size="20" @click="exportCustomers" />
       </template>
@@ -131,6 +131,14 @@
         </van-form>
       </div>
     </van-popup>
+
+    <!-- 底部导航 -->
+    <van-tabbar v-model="activeTab" route>
+      <van-tabbar-item icon="home-o" to="/dashboard">首页</van-tabbar-item>
+      <van-tabbar-item icon="friends-o" to="/customers">客户</van-tabbar-item>
+      <van-tabbar-item icon="notes-o" to="/reports">日报</van-tabbar-item>
+      <van-tabbar-item icon="todo-list-o" to="/plans">方案</van-tabbar-item>
+    </van-tabbar>
   </div>
 </template>
 
@@ -138,6 +146,8 @@
 import { ref, computed, reactive } from 'vue'
 import { showToast, showSuccessToast, showConfirmDialog } from 'vant'
 import request from '@/utils/request'
+
+const activeTab = ref(1) // 客户页面索引为1
 
 interface Customer {
   id: number

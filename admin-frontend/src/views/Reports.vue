@@ -1,6 +1,6 @@
 <template>
   <div class="reports-page">
-    <van-nav-bar title="日报管理" left-arrow @click-left="$router.back()">
+    <van-nav-bar title="日报管理">
       <template #right>
         <van-icon name="setting-o" size="20" @click="showGenerateDialog = true" />
       </template>
@@ -136,9 +136,17 @@
         label="日报日期"
       />
       <div style="padding: 16px; color: #999; font-size: 12px;">
-        系统将汇总当天所有销售人员录入的客户信息，AI自动生成日报总结
+        系统将汇总当天所有销售人员录入的客户信息,AI自动生成日报总结
       </div>
     </van-dialog>
+  
+    <!-- 底部导航 -->
+    <van-tabbar v-model="activeTab" route>
+      <van-tabbar-item icon="home-o" to="/dashboard">首页</van-tabbar-item>
+      <van-tabbar-item icon="friends-o" to="/customers">客户</van-tabbar-item>
+      <van-tabbar-item icon="notes-o" to="/reports">日报</van-tabbar-item>
+      <van-tabbar-item icon="todo-list-o" to="/plans">方案</van-tabbar-item>
+    </van-tabbar>
   </div>
 </template>
 
@@ -146,6 +154,8 @@
 import { ref, onMounted } from 'vue'
 import { showToast } from 'vant'
 import request from '@/utils/request'
+
+const activeTab = ref(2) // 日报页面索引为2
 
 interface Report {
   id: number

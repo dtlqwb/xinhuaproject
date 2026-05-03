@@ -1,6 +1,6 @@
 <template>
   <div class="plans-page">
-    <van-nav-bar title="营销方案" left-arrow @click-left="$router.back()">
+    <van-nav-bar title="营销方案">
       <template #right>
         <van-icon name="plus" size="20" @click="showCreateDialog = true" style="margin-right: 12px" />
         <van-icon name="magic-stick" size="20" @click="showGenerateDialog = true" />
@@ -200,6 +200,14 @@
         系统将根据客户信息，AI自动生成定制化营销方案
       </div>
     </van-dialog>
+
+    <!-- 底部导航 -->
+    <van-tabbar v-model="activeTab" route>
+      <van-tabbar-item icon="home-o" to="/dashboard">首页</van-tabbar-item>
+      <van-tabbar-item icon="friends-o" to="/customers">客户</van-tabbar-item>
+      <van-tabbar-item icon="notes-o" to="/reports">日报</van-tabbar-item>
+      <van-tabbar-item icon="todo-list-o" to="/plans">方案</van-tabbar-item>
+    </van-tabbar>
   </div>
 </template>
 
@@ -207,6 +215,8 @@
 import { ref, onMounted } from 'vue'
 import { showToast } from 'vant'
 import request from '@/utils/request'
+
+const activeTab = ref(3) // 方案页面索引为3
 
 interface Plan {
   id: number
