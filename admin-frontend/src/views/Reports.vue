@@ -19,6 +19,15 @@
         finished-text="没有更多了"
         @load="onLoad"
       >
+        <!-- 空状态兜底 -->
+        <EmptyState
+          v-if="!loading && finished && reports.length === 0"
+          description="暂无日报数据"
+          :show-button="true"
+          button-text="生成日报"
+          @click="showGenerateDialog = true"
+        />
+        
         <van-cell
           v-for="report in reports"
           :key="report.id"
@@ -148,6 +157,7 @@
 import { ref, onMounted } from 'vue'
 import { showToast } from 'vant'
 import request from '@/utils/request'
+import EmptyState from '@/components/EmptyState/EmptyState.vue'
 
 interface Report {
   id: number
@@ -196,11 +206,18 @@ const loadReports = async () => {
   loading.value = true
   try {
     const data = await request.get('/admin/reports')
-    reports.value = data || []
+    if (!data || !Array.isArray(data)) {
+      reports.value = []
+      showToast('数据格式错误')
+      return
+    }
+    reports.value = data
     finished.value = true
   } catch (error: any) {
     console.error('加载日报失败:', error)
-    showToast(error.message || '加载失败')
+    const errorMsg = error.message || '加载失败'
+    showToast(errorMsg)
+    reports.value = [] // 错误时清空数据，显示空状态
   } finally {
     loading.value = false
   }

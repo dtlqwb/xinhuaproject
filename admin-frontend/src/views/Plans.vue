@@ -23,6 +23,15 @@
         finished-text="没有更多了"
         @load="onLoad"
       >
+        <!-- 空状态兜底 -->
+        <EmptyState
+          v-if="!loading && finished && plans.length === 0"
+          description="暂无营销方案"
+          :show-button="true"
+          button-text="生成方案"
+          @click="showGenerateDialog = true"
+        />
+        
         <van-cell
           v-for="plan in plans"
           :key="plan.id"
@@ -215,6 +224,8 @@
 import { ref, onMounted } from 'vue'
 import { showToast } from 'vant'
 import request from '@/utils/request'
+import EmptyState from '@/components/EmptyState/EmptyState.vue'
+import { formatDateTime, truncateText } from '@/utils/common'
 
 const activeTab = ref(3) // 方案页面索引为3
 
@@ -277,7 +288,13 @@ const loadPlans = async () => {
   loading.value = true
   try {
     const data = await request.get('/admin/plans')
-    let filtered = data || []
+    if (!data || !Array.isArray(data)) {
+      plans.value = []
+      showToast('数据格式错误')
+      return
+    }
+    
+    let filtered = data
     
     // 状态筛选
     if (statusFilter.value) {
@@ -298,7 +315,9 @@ const loadPlans = async () => {
     finished.value = true
   } catch (error: any) {
     console.error('加载方案失败:', error)
-    showToast(error.message || '加载失败')
+    const errorMsg = error.message || '加载失败'
+    showToast(errorMsg)
+    plans.value = [] // 错误时清空数据，显示空状态
   } finally {
     loading.value = false
   }

@@ -190,9 +190,17 @@ const loadCustomers = async () => {
   loading.value = true
   try {
     const response = await request.get<any>('/admin/customers')
-    customers.value = response || []
+    if (!response || !Array.isArray(response)) {
+      customers.value = []
+      showToast('数据格式错误')
+      return
+    }
+    customers.value = response
   } catch (error: any) {
     console.error('加载客户列表失败:', error)
+    const errorMsg = error.message || '加载失败'
+    showToast(errorMsg)
+    customers.value = [] // 错误时清空数据
   } finally {
     loading.value = false
   }
