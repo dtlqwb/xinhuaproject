@@ -249,7 +249,8 @@ const generateDailyReport = async () => {
   
   try {
     const result = await request.post('/admin/reports/generate', null, {
-      params: { date: reportDate.value }
+      params: { date: reportDate.value },
+      timeout: 120000 // AI生成需要更长时间,设置为2分钟
     })
     
     showToast('日报生成成功')
