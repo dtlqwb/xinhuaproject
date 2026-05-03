@@ -189,14 +189,7 @@ const showGenerateDialog = ref(false)
 const showReviewDialog = ref(false)
 const currentReport = ref<Report | null>(null)
 const reviewComment = ref('')
-const reportDate = ref(() => {
-  // 使用本地时区日期,避免UTC时区偏移问题
-  const now = new Date()
-  const year = now.getFullYear()
-  const month = String(now.getMonth() + 1).padStart(2, '0')
-  const day = String(now.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-})()
+const reportDate = ref(new Date().toISOString().split('T')[0])
 
 onMounted(() => {
   loadReports()
