@@ -12,36 +12,26 @@
     </div>
 
     <!-- 日报列表 -->
-    <van-pull-refresh v-model="refreshing" @refresh="loadReports">
-      <van-list
-        v-model:loading="loading"
-        :finished="finished"
-        finished-text="没有更多了"
-        @load="onLoad"
+    <div class="report-list" v-if="reports.length > 0">
+      <van-cell
+        v-for="report in reports"
+        :key="report.id"
+        :title="`${report.salesName} - ${report.reportDate}`"
+        :label="getStatusText(report.status)"
+        :value="report.todayCustomers + '个客户'"
+        is-link
+        @click="showReportDetail(report)"
       >
-        <!-- 空状态提示 -->
-        <van-empty
-          v-if="!loading && reports.length === 0"
-          description="暂无日报数据"
-        />
-        
-        <van-cell
-          v-for="report in reports"
-          :key="report.id"
-          :title="`${report.salesName} - ${report.reportDate}`"
-          :label="getStatusText(report.status)"
-          :value="report.todayCustomers + '个客户'"
-          is-link
-          @click="showReportDetail(report)"
-        >
-          <template #icon>
-            <van-tag :type="getStatusType(report.status)" style="margin-right: 8px">
-              {{ getStatusText(report.status) }}
-            </van-tag>
-          </template>
-        </van-cell>
-      </van-list>
-    </van-pull-refresh>
+        <template #icon>
+          <van-tag :type="getStatusType(report.status)" style="margin-right: 8px">
+            {{ getStatusText(report.status) }}
+          </van-tag>
+        </template>
+      </van-cell>
+    </div>
+    
+    <!-- 空状态 -->
+    <van-empty v-else description="暂无日报数据" />
 
     <!-- 日报详情弹窗 -->
     <van-popup v-model:show="showDetail" round position="bottom" :style="{ height: '80%' }">
@@ -177,9 +167,6 @@ interface Report {
 }
 
 const reports = ref<Report[]>([])
-const loading = ref(false)
-const finished = ref(false)
-const refreshing = ref(false)
 const searchKeyword = ref('')
 const showDetail = ref(false)
 const showGenerateDialog = ref(false)
@@ -203,18 +190,10 @@ const loadReports = async () => {
   try {
     const data = await request.get('/admin/reports')
     reports.value = data || []
-    finished.value = true
   } catch (error: any) {
     console.error('加载日报失败:', error)
     showToast(error.message || '加载失败')
   }
-}
-
-const onLoad = () => {
-  // 分页加载逻辑(如果需要)
-  // 由于后端暂未实现分页,直接标记为finished
-  loading.value = false
-  finished.value = true
 }
 
 const showReportDetail = (report: Report) => {
