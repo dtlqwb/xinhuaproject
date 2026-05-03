@@ -64,9 +64,6 @@ jobs:
           # 删除旧镜像
           docker rmi xinhuaproject-backend:latest xinhuaproject-admin-frontend:latest 2>/dev/null || true
               
-          # 清理旧jar(如果有)
-          rm -f backend/target/*.jar 2>/dev/null || true
-          
           # 检查scp传输的jar
           echo "检查jar文件:"
           ls -lh backend/target/*.jar 2>/dev/null || echo "未找到jar文件,需要编译"
