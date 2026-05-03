@@ -21,10 +21,13 @@ app.use(pinia)
 app.use(router)
 app.use(Vant)
 
+// 保护全局$,避免第三方库冲突
+;(window as any).$ = undefined
+
 // 挂载时捕获错误
 try {
   app.mount('#app')
-  console.log('✅ Vue app mounted successfully')
+  console.log(' Vue app mounted successfully')
 } catch (error) {
   console.error(' Failed to mount Vue app:', error)
   document.getElementById('app')!.innerHTML = `<div style="padding:20px;color:red;">应用加载失败: ${error}</div>`
