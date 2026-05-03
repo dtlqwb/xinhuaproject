@@ -29,7 +29,10 @@ const onSubmit = async () => {
       username: username.value,
       password: password.value
     })
+    // 保存 token、role 和用户信息
     localStorage.setItem('admin_token', result.token)
+    localStorage.setItem('admin_role', result.role || 'admin')
+    localStorage.setItem('admin_user', JSON.stringify(result))
     showToast('登录成功')
     router.push('/dashboard')
   } catch (error: any) {

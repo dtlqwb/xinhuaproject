@@ -36,11 +36,44 @@ public class JwtUtil {
     }
     
     /**
+     * 生成Token（包含角色信息）
+     */
+    public String generateToken(Long userId, String username, String role) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("userId", userId);
+        claims.put("username", username);
+        claims.put("role", role);
+        
+        return Jwts.builder()
+                .setClaims(claims)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + expiration))
+                .signWith(SignatureAlgorithm.HS256, secret)
+                .compact();
+    }
+    
+    /**
      * 从Token中获取用户ID
      */
     public Long getUserIdFromToken(String token) {
         Claims claims = getClaimsFromToken(token);
         return claims != null ? Long.valueOf(claims.get("userId").toString()) : null;
+    }
+    
+    /**
+     * 从Token中获取用户名
+     */
+    public String getUsernameFromToken(String token) {
+        Claims claims = getClaimsFromToken(token);
+        return claims != null ? claims.get("username", String.class) : null;
+    }
+    
+    /**
+     * 从Token中获取角色
+     */
+    public String getRoleFromToken(String token) {
+        Claims claims = getClaimsFromToken(token);
+        return claims != null ? claims.get("role", String.class) : null;
     }
     
     /**

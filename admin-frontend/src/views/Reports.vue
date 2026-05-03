@@ -149,6 +149,7 @@
       <van-tabbar-item icon="friends-o" to="/customers">客户</van-tabbar-item>
       <van-tabbar-item icon="notes-o" to="/reports">日报</van-tabbar-item>
       <van-tabbar-item icon="todo-list-o" to="/plans">方案</van-tabbar-item>
+      <van-tabbar-item icon="setting-o" to="/users" v-if="isSuperAdmin()">设置</van-tabbar-item>
     </van-tabbar>
   </div>
 </template>
@@ -158,6 +159,7 @@ import { ref, onMounted } from 'vue'
 import { showToast } from 'vant'
 import request from '@/utils/request'
 import EmptyState from '@/components/EmptyState/EmptyState.vue'
+import { isSuperAdmin } from '@/utils/permission'
 
 interface Report {
   id: number

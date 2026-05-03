@@ -138,6 +138,7 @@
       <van-tabbar-item icon="friends-o" to="/customers">客户</van-tabbar-item>
       <van-tabbar-item icon="notes-o" to="/reports">日报</van-tabbar-item>
       <van-tabbar-item icon="todo-list-o" to="/plans">方案</van-tabbar-item>
+      <van-tabbar-item icon="setting-o" to="/users" v-if="isSuperAdmin()">设置</van-tabbar-item>
     </van-tabbar>
   </div>
 </template>
@@ -146,6 +147,7 @@
 import { ref, computed, reactive } from 'vue'
 import { showToast, showSuccessToast, showConfirmDialog } from 'vant'
 import request from '@/utils/request'
+import { isSuperAdmin } from '@/utils/permission'
 
 const activeTab = ref(1) // 客户页面索引为1
 

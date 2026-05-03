@@ -15,7 +15,13 @@ public class AdminUser {
     
     private String password;
     
-    private String role;
+    private String phone;
+    
+    private String email;
+    
+    private String realName;
+    
+    private String role; // super_admin, admin
     
     private Integer status;
     

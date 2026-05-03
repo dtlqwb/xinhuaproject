@@ -115,7 +115,10 @@ CREATE TABLE IF NOT EXISTS admin_user (
     id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '主键ID',
     username VARCHAR(50) NOT NULL UNIQUE COMMENT '用户名',
     password VARCHAR(100) NOT NULL COMMENT '密码（加密）',
-    role VARCHAR(20) DEFAULT 'admin' COMMENT '角色：admin-管理员',
+    phone VARCHAR(20) COMMENT '手机号',
+    email VARCHAR(100) COMMENT '邮箱',
+    real_name VARCHAR(50) COMMENT '真实姓名',
+    role VARCHAR(20) DEFAULT 'admin' COMMENT '角色：super_admin-超级管理员，admin-普通管理员',
     status TINYINT DEFAULT 1 COMMENT '状态：1-正常，0-禁用',
     create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
@@ -123,8 +126,8 @@ CREATE TABLE IF NOT EXISTS admin_user (
     INDEX idx_username (username)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='管理员表';
 
--- 插入默认管理员账号（密码：admin123，实际使用时需要加密）
-INSERT INTO admin_user (username, password, role) VALUES ('admin', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', 'admin');
+-- 插入默认超级管理员账号（密码：admin123，实际使用时需要加密）
+INSERT INTO admin_user (username, password, role, real_name) VALUES ('admin', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', 'super_admin', '系统管理员');
 
 -- 插入测试销售人员账号（密码：123456，实际使用时需要加密）
 INSERT INTO sales_person (name, phone, password, department) VALUES 
